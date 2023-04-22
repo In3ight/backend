@@ -2,16 +2,21 @@ package kr.co.suitcarrier.web.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import kr.co.suitcarrier.web.dto.LoginRequestDto;
-import kr.co.suitcarrier.web.dto.LoginResponseDto;
-import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.repository.UserRepository;
+import kr.co.suitcarrier.web.service.CustomUserDetailsService;
 import kr.co.suitcarrier.web.util.JwtTokenUtil;
 
 @RestController
@@ -22,29 +27,84 @@ public class AuthController {
     UserRepository userRepository;
 
     @Autowired
+    CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
     JwtTokenUtil jwtTokenUtil;
 
     @Autowired
     PasswordEncoder passwordEncoder;
 
     @PostMapping(path="/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public LoginResponseDto login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response) {
         
-        User user = null;
+        UserDetails userDetails = null;
         
         try {
             // email로 user 찾기
-            user = userRepository.findByEmail(loginRequestDto.getEmail()).get();
+            userDetails = customUserDetailsService.loadUserByUsername(loginRequestDto.getEmail());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(loginRequestDto.getPassword(), userDetails.getPassword())) {
             // user가 있고 비밀번호가 맞으면 access token, refresh token 반환
-            return new LoginResponseDto(jwtTokenUtil.generateAccessToken(user), jwtTokenUtil.generateRefreshToken(user));
+            // return new LoginResponseDto(jwtTokenUtil.generateAccessToken(user), jwtTokenUtil.generateRefreshToken(user));
+
+            // Set JWTs as HTTP-only cookie
+            Cookie cookieAccess = new Cookie("SC_access_token", jwtTokenUtil.generateAccessToken(userDetails));
+            cookieAccess.setHttpOnly(true);
+            cookieAccess.setMaxAge((int)jwtTokenUtil.getJwtAccessExpirationTime());
+            cookieAccess.setPath("/");
+            // cookieAccess.setSecure(true);
+            response.addCookie(cookieAccess);
+
+            Cookie cookieRefresh = new Cookie("SC_refresh_token", jwtTokenUtil.generateRefreshToken(userDetails));
+            cookieRefresh.setHttpOnly(true);
+            cookieRefresh.setMaxAge((int)jwtTokenUtil.getJwtRefreshExpirationTime());
+            cookieRefresh.setPath("/refreshAccessToken");
+            // cookieRefresh.setSecure(true);
+            response.addCookie(cookieRefresh);
+            
+            return ResponseEntity.ok().build();
         } else {
             // user가 없거나 비밀번호가 틀리면 null 반환
-            return new LoginResponseDto(null, null);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/refreshAccessToken")
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        // cookie 확인 (http-only refresh token)
+        Cookie[] cookies = request.getCookies();
+        // refresh token으로 access token 재발급
+        if(cookies != null) {
+            for(Cookie cookie : cookies) {
+                if(cookie.getName().equals("SC_refresh_token")) {
+                    try {
+                        // refresh token으로 user 찾기
+                        UserDetails userDetails = customUserDetailsService.loadUserByUsername(jwtTokenUtil.getUsernameFromRefreshToken(cookie.getValue()));
+                        // refresh token이 유효한지 확인
+                        if(jwtTokenUtil.validateRefreshToken(cookie.getValue())) {
+                            // refresh token으로 access token 재발급
+                            // Set Access Token as HTTP-only cookie
+                            Cookie cookieAccess = new Cookie("SC_access_token", jwtTokenUtil.generateAccessToken(userDetails));
+                            cookieAccess.setHttpOnly(true);
+                            cookieAccess.setMaxAge((int)jwtTokenUtil.getJwtAccessExpirationTime());
+                            cookieAccess.setPath("/");
+                            // cookieAccess.setSecure(true);
+                            response.addCookie(cookieAccess);
+                            return ResponseEntity.ok().build();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return ResponseEntity.badRequest().build();
+        }
+        else {
+            return ResponseEntity.badRequest().build();
         }
     }
 
