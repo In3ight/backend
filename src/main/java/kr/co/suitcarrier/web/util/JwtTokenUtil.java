@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
-import kr.co.suitcarrier.web.entity.User;
 
 @Component
 public class JwtTokenUtil {
@@ -25,13 +24,21 @@ public class JwtTokenUtil {
     @Value("${jwt_access.secret}")
     private String JWT_REFRESH_SECRET_KEY;
 
+    public long getJwtAccessExpirationTime() {
+        return JWT_ACCESS_EXPIRATION_TIME;
+    }
+
+    public long getJwtRefreshExpirationTime() {
+        return JWT_REFRESH_EXPIRATION_TIME;
+    }
+
     // Generate token for user
-    public String generateAccessToken(User user) {
+    public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         // 필요한 정보를 claims에 넣어준다.
-        claims.put("role", user.getRole());
-        claims.put("email", user.getEmail());
-        return createAccessToken(claims, user.getEmail());
+        claims.put("role", userDetails.getAuthorities());
+        claims.put("email", userDetails.getUsername());
+        return createAccessToken(claims, userDetails.getUsername());
     }
 
     // Create token
@@ -50,12 +57,11 @@ public class JwtTokenUtil {
     }
 
     // Generate token for user
-    public String generateRefreshToken(User user) {
+    public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         // 필요한 정보를 claims에 넣어준다.
-        claims.put("role", user.getRole());
-        claims.put("email", user.getEmail());
-        return createRefreshToken(claims, user.getEmail());
+        claims.put("email", userDetails.getUsername());
+        return createRefreshToken(claims, userDetails.getUsername());
     }
 
     // Create token
@@ -74,15 +80,30 @@ public class JwtTokenUtil {
     }
 
     // Validate Access token
-    public boolean validateAccessToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromAccessToken(token);
-        return (username.equals(userDetails.getUsername()) && !isAccessTokenExpired(token));
+    public boolean validateAccessToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(generalKey(JWT_ACCESS_SECRET_KEY)).build().parseClaimsJws(token);
+            if(!(isAccessTokenExpired(token))) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
-
+    
     // Validate Refresh token
-    public boolean validateRefreshToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromRefreshToken(token);
-        return (username.equals(userDetails.getUsername()) && !isRefreshTokenExpired(token));
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(token);
+            if(!(isRefreshTokenExpired(token))) {
+                // TODO: refresh token 테이블 연동해서 DB에 해당 토큰 존재하는지 검증 필요
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Get username from Access token
