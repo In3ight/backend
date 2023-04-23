@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.co.suitcarrier.web.dto.LoginRequestDto;
 import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.service.CustomUserDetailsService;
+import kr.co.suitcarrier.web.service.RefreshTokenService;
 import kr.co.suitcarrier.web.util.JwtTokenUtil;
 
 @RestController
@@ -28,6 +29,9 @@ public class AuthController {
 
     @Autowired
     CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    RefreshTokenService refreshTokenService;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
@@ -59,7 +63,9 @@ public class AuthController {
             // cookieAccess.setSecure(true);
             response.addCookie(cookieAccess);
 
-            Cookie cookieRefresh = new Cookie("SC_refresh_token", jwtTokenUtil.generateRefreshToken(userDetails));
+            String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+            refreshTokenService.saveRefreshToken(refreshToken, loginRequestDto.getEmail());
+            Cookie cookieRefresh = new Cookie("SC_refresh_token", refreshToken);
             cookieRefresh.setHttpOnly(true);
             cookieRefresh.setMaxAge((int)jwtTokenUtil.getJwtRefreshExpirationTime());
             cookieRefresh.setPath("/refreshAccessToken");
