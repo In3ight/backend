@@ -88,7 +88,7 @@ public class JwtTokenUtil {
     public boolean validateAccessToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(generalKey(JWT_ACCESS_SECRET_KEY)).build().parseClaimsJws(token);
-            if(!(isAccessTokenExpired(token))) {
+            if(!isAccessTokenExpired(token)) {
                 return true;
             }
             return false;
@@ -101,7 +101,7 @@ public class JwtTokenUtil {
     public boolean validateRefreshToken(String refreshToken) {
         try {
             Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(refreshToken);
-            if(!(isRefreshTokenExpired(refreshToken))) {
+            if(!isRefreshTokenExpired(refreshToken)) {
                 refreshTokenService.doesRefreshTokenExists(refreshToken);
                 return true;
             }
