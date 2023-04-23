@@ -8,11 +8,13 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
+import kr.co.suitcarrier.web.service.RefreshTokenService;
 
 @Component
 public class JwtTokenUtil {
@@ -23,6 +25,9 @@ public class JwtTokenUtil {
     private String JWT_ACCESS_SECRET_KEY;
     @Value("${jwt_access.secret}")
     private String JWT_REFRESH_SECRET_KEY;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     public long getJwtAccessExpirationTime() {
         return JWT_ACCESS_EXPIRATION_TIME;
@@ -93,11 +98,11 @@ public class JwtTokenUtil {
     }
     
     // Validate Refresh token
-    public boolean validateRefreshToken(String token) {
+    public boolean validateRefreshToken(String refreshToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(token);
-            if(!(isRefreshTokenExpired(token))) {
-                // TODO: refresh token 테이블 연동해서 DB에 해당 토큰 존재하는지 검증 필요
+            Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(refreshToken);
+            if(!(isRefreshTokenExpired(refreshToken))) {
+                refreshTokenService.doesRefreshTokenExists(refreshToken);
                 return true;
             }
             return false;
