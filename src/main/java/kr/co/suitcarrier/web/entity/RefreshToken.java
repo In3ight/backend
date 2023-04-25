@@ -26,7 +26,7 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Column(name="refreshJwt", nullable = false)
+    @Column(name="refreshJwt", nullable = false, unique = true)
     private String refreshJwt;
     
 }
