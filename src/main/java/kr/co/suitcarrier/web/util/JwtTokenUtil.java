@@ -94,17 +94,11 @@ public class JwtTokenUtil {
     // Validate Access token
     public boolean validateAccessToken(String token) {
         try {
-            // TODO: System.out 삭제하기
-            System.out.println("validating Access token");
             Jwts.parserBuilder().setSigningKey(generalKey(JWT_ACCESS_SECRET_KEY)).build().parseClaimsJws(token);
             // access token이 만료되었거나 redis에 존재하면(logout한 token) false
             if(! isAccessTokenExpired(token) && redisService.get(accessTokenRedisPrefix + token) == null) {
-                // TODO: System.out 삭제하기
-                System.out.println("validating Access token: true");
                 return true;
             }
-            // TODO: System.out 삭제하기
-            System.out.println("validating Access token: false");
             return false;
         } catch (Exception e) {
             e.printStackTrace();
@@ -116,8 +110,6 @@ public class JwtTokenUtil {
     public boolean validateRefreshToken(String refreshToken) {
         try {
             Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(refreshToken);
-            // TODO: System.out 삭제하기
-            System.out.println("validating Refresh token");
             if(!isRefreshTokenExpired(refreshToken)) {
                 refreshTokenService.doesRefreshTokenExists(refreshToken);
                 return true;

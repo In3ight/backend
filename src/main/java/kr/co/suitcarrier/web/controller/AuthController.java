@@ -134,15 +134,10 @@ public class AuthController {
         if(cookies != null) {
             for(Cookie cookie : cookies) {
                 if(cookie.getName().equals(accessTokenCookieName)) {
-                    // TODO: System.out 삭제하기
-                    System.out.println("accessTokenCookieName: " + cookie.getName());
-                    System.out.println("accessTokenCookieName: " + cookie.getValue());
                     try {
                         // Redis에 (key, value)로 (Prefix + access token, username(email)) 저장
                         redisService.setAccessToken(accessTokenRedisPrefix + cookie.getValue(), ((UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername());
                         // access token 수명 0으로 설정
-                        // TODO: access token이 response cookie에 set 안되는 문제
-                        // TODO: access token이 redis에 등록 안되는 문제
                         Cookie accessTokenCookie = new Cookie(accessTokenCookieName, null);
                         accessTokenCookie.setHttpOnly(true);
                         accessTokenCookie.setMaxAge(0);
@@ -155,12 +150,8 @@ public class AuthController {
                     }
                 }
                 else if(cookie.getName().equals(refreshTokenCookieName)) {
-                    // TODO: System.out 삭제하기
-                    System.out.println("refreshTokenCookieName: " + cookie.getName());
-                    System.out.println("refreshTokenCookieName: " + cookie.getValue());
                     try {
                         // refresh token DB에서 삭제
-                        // TODO: refresh token이 DB에서 삭제되지 않는 문제
                         refreshTokenService.deleteRefreshToken(cookie.getValue());
                         // refresh token 수명 0으로 설정
                         Cookie refreshTokenCookie = new Cookie(refreshTokenCookieName, null);
