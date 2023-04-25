@@ -39,8 +39,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 for (Cookie cookie : cookies) {
                     if (cookie.getName().equals(accessTokenCookieName)) {
                         accessToken = cookie.getValue();
-                        // TODO: System.out 삭제하기
-                        System.out.println("filter accessToken: " + accessToken);
                         break;
                     }
                 }
@@ -48,11 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // If JWT is found, validate it and set authentication
             if (accessToken != null && jwtTokenUtil.validateAccessToken(accessToken)) {
-                // TODO: System.out 삭제하기
-                System.out.println("username: " + userDetailsService.loadUserByUsername(jwtTokenUtil.getUsernameFromAccessToken(accessToken)));
                 UserDetails userDetails = userDetailsService.loadUserByUsername(jwtTokenUtil.getUsernameFromAccessToken(accessToken));
-                // TODO: System.out 삭제하기
-                System.out.println("userDetails: " + userDetails);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
