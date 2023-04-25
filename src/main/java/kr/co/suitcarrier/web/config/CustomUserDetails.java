@@ -29,8 +29,14 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         ArrayList<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
+        // TODO: System.out 삭제하기
+        System.out.print(role);
         auth.add(new SimpleGrantedAuthority(role));
         return auth;
+    }
+
+    public String getRole() {
+        return this.role;
     }
 
     @Override
