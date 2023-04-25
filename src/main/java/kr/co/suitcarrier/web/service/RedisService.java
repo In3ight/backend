@@ -15,9 +15,6 @@ public class RedisService {
     private StringRedisTemplate redisTemplate;
 
     public void set(String key, String value) {
-        //TODO: System.out 삭제
-        System.out.println("RedisService.set() key: " + key);
-        System.out.println("RedisService.set() value: " + value);
         redisTemplate.opsForValue().set(key, value);
     }
 
