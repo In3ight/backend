@@ -39,4 +39,14 @@ public class RefreshTokenService {
         }
     }
 
+    public boolean deleteRefreshToken(String refreshJwt) {
+        try {
+            refreshTokenRepository.deleteByRefreshJwt(refreshJwt);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
