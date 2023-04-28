@@ -109,12 +109,12 @@ public class JwtTokenUtil {
     public boolean validateRefreshToken(String refreshToken) {
         try {
             Jwts.parserBuilder().setSigningKey(generalKey(JWT_REFRESH_SECRET_KEY)).build().parseClaimsJws(refreshToken);
-            if(!isRefreshTokenExpired(refreshToken)) {
-                refreshTokenService.doesRefreshTokenExists(refreshToken);
+            if(!isRefreshTokenExpired(refreshToken) && refreshTokenService.doesRefreshTokenExists(refreshToken)) {
                 return true;
             }
             return false;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -148,7 +148,7 @@ public class JwtTokenUtil {
 
     // Check if Refresh token is expired
     private boolean isRefreshTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromAccessToken(token);
+        final Date expiration = getExpirationDateFromRefreshToken(token);
         // 현재 시간이 만료 시간보다 뒤에 있으면 true
         return expiration.before(new Date());
     }
