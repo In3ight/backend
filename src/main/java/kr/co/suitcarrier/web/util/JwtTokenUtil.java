@@ -26,7 +26,7 @@ public class JwtTokenUtil {
     private static final long JWT_REFRESH_EXPIRATION_TIME = 3600*24*21; // 3 weeks
     @Value("${jwt_access.secret}")
     private String JWT_ACCESS_SECRET_KEY;
-    @Value("${jwt_access.secret}")
+    @Value("${jwt_refresh.secret}")
     private String JWT_REFRESH_SECRET_KEY;
 
     @Autowired
@@ -47,7 +47,6 @@ public class JwtTokenUtil {
     public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         // 필요한 정보를 claims에 넣어준다.
-        System.out.println(userDetails.getAuthorities().toString());
         claims.put("role", userDetails.getAuthorities());
         claims.put("email", userDetails.getUsername());
         return createAccessToken(claims, userDetails.getUsername());
