@@ -60,6 +60,7 @@ public class AuthController {
             userDetails = customUserDetailsService.loadUserByUsername(loginRequestDto.getEmail());
         } catch (Exception e) {
             e.printStackTrace();
+            return ResponseEntity.badRequest().build();
         }
 
         if (passwordEncoder.matches(loginRequestDto.getPassword(), userDetails.getPassword())) {
