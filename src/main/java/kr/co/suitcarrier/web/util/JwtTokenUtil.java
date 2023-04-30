@@ -16,8 +16,10 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
 import kr.co.suitcarrier.web.service.RedisService;
 import kr.co.suitcarrier.web.service.RefreshTokenService;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenUtil {
 
     private String accessTokenRedisPrefix = "REDIS_JWT_";
@@ -153,7 +155,7 @@ public class JwtTokenUtil {
         return expiration.before(new Date());
     }
 
-    public static SecretKey generalKey(String key) {
+    private SecretKey generalKey(String key) {
         byte[] encodedKey = Base64.getDecoder().decode(key);
         // SecretKeySpec(byte[] key, int offset, int len, String algorithm)
         SecretKey returnKey = new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA512");
