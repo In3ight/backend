@@ -8,5 +8,10 @@
     "name": "jwt_refresh.secret",
     "type": "java.lang.String",
     "description": "Refresh Token(JWT) Secret Key"
+  },
+  {
+    "name": "security.enable-csrf",
+    "type": "java.lang.String",
+    "description": "Enable CSRF Protection"
   }
 ]}

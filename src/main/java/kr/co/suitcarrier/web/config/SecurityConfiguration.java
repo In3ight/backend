@@ -1,19 +1,26 @@
 package kr.co.suitcarrier.web.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfiguration {
     
-    @Value("${security.enable-csrf ?: true}")
+    @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
+
+    @Autowired
+    private JwtFilter jwtFilter;
 
     // Password encoder, used by Spring to encode and verify user passwords
     @Bean
@@ -21,6 +28,7 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // 개발용으로 csrf를 비활성화한 경우, csrf 설정 비활성화
         if(!csrfEnabled) {
@@ -28,16 +36,25 @@ public class SecurityConfiguration {
             http.csrf().disable();
         }
 
+        // JWT 사용 위해 세션 비활성화
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        // Request PATH에 따른 요구 권한 설정
         http
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/product/**").hasRole("USER")
-                .requestMatchers("/auth/**").authenticated()
-                .requestMatchers("/search/**","/login").permitAll()
+                // .requestMatchers("/**").permitAll()
+                .requestMatchers("/api/hello").permitAll()
+                .requestMatchers("/auth/logout").authenticated()
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                .requestMatchers("/product/**").hasAuthority("USER")
+                .requestMatchers("/search/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                .anyRequest().denyAll()
             );
 
         // Add our custom JWT security filter
-        http.addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

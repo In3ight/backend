@@ -35,6 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             customUserDetails.setRole(user.getRole().name());
             customUserDetails.setEnabled(user.isEnabled());
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println(username + " is not found");
         }
 
