@@ -1,5 +1,7 @@
 package kr.co.suitcarrier.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import kr.co.suitcarrier.web.service.RedisService;
 import kr.co.suitcarrier.web.service.RefreshTokenService;
 import kr.co.suitcarrier.web.util.JwtTokenUtil;
 
+@Tag(name = "auth", description = "인증 관련 API")
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -51,6 +54,7 @@ public class AuthController {
     PasswordEncoder passwordEncoder;
 
     @PostMapping(path="/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "로그인", description = "email을 이용하여 사용자를 조회하고 access token, refresh token을 반환합니다.")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response) {
         
         UserDetails userDetails = null;
@@ -92,6 +96,7 @@ public class AuthController {
     }
 
     @GetMapping("/refreshAccessToken")
+    @Operation(summary = "access token 재발급", description = "쿠키를 확인하고 refresh token으로 access token을 재발급합니다.")
     public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         // cookie 확인 (http-only refresh token)
         Cookie[] cookies = request.getCookies();
@@ -128,6 +133,7 @@ public class AuthController {
 
     // 보안 위해 CSRF 적용
     @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "refresh token을 삭제합니다.")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         // cookie 확인 (http-only refresh token)
         Cookie[] cookies = request.getCookies();
