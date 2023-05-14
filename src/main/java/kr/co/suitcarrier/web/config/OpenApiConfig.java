@@ -23,16 +23,14 @@ public class OpenApiConfig {
                 .termsOfService("http://swagger.io/terms/")
                 .license(new License().name("Apache License Version 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
 
-        List<Server> servers = Arrays.asList(new Server().description("demo"));
-
-        // http 기본 인증
+        // 쿠키 기반 인가 설정
         SecurityScheme basicAuth = new SecurityScheme()
-                .type(SecurityScheme.Type.HTTP).scheme("basic");
-        SecurityRequirement securityItem = new SecurityRequirement().addList("basicAuth");
+                .type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.COOKIE).name("SC_access_token");
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("basicAuth");
 
         return new OpenAPI()
                 .components(new Components().addSecuritySchemes("basicAuth", basicAuth))
-                .addSecurityItem(securityItem)
+                .addSecurityItem(securityRequirement)
                 .info(info);
     }
 }
