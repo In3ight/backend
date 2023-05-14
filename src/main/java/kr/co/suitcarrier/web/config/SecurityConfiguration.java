@@ -50,6 +50,9 @@ public class SecurityConfiguration {
                 .requestMatchers("/product/**").hasAuthority("USER")
                 .requestMatchers("/search/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
                 .anyRequest().denyAll()
             );
 
