@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,8 @@ public class AuthController {
     private String refreshTokenCookieName = "SC_refresh_token";
     private String accessTokenRedisPrefix = "REDIS_JWT_";
 
+    private final CookieCsrfTokenRepository cookieCsrfTokenRepository = new CookieCsrfTokenRepository();
+    
     @Autowired
     UserRepository userRepository;
 
@@ -177,4 +181,15 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
     
+    @GetMapping("/getCsrfToken")
+    @Operation(summary = "CSRF 토큰 발급", description = "CSRF 토큰이 없을 경우에 토큰이 필요한 api를 요청할 때 사용합니다.")
+    public ResponseEntity<?> getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
+        CsrfToken csrfToken = cookieCsrfTokenRepository.generateToken(request);
+        Cookie cookie = new Cookie("XSRF-TOKEN", csrfToken.getToken());
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok().build();
+    }
+
 }
