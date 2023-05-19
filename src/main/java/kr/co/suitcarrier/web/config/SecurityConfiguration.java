@@ -39,6 +39,13 @@ public class SecurityConfiguration {
         // JWT 사용 위해 세션 비활성화
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        // XSS Protection, Content Security Policy 설정
+        http.headers()
+            .xssProtection()
+            .and()
+            // every contents source must be derived from the server
+            .contentSecurityPolicy("default-src 'self'");
+
         // Request PATH에 따른 요구 권한 설정
         http
             .authorizeHttpRequests((authorize) -> authorize
