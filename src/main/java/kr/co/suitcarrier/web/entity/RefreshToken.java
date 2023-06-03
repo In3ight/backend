@@ -1,5 +1,9 @@
 package kr.co.suitcarrier.web.entity;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.CreatedDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,7 +19,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name="refresh_token")
+@Table(name="refreshToken")
 public class RefreshToken {
     @Id
     @Column(name="id")
@@ -23,10 +27,14 @@ public class RefreshToken {
     private Long id;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "userId", referencedColumnName = "id")
     private User user;
 
-    @Column(name="refreshJwt", nullable = false, unique = true)
+    @Column(name = "refreshJwt", nullable = false, unique = true)
     private String refreshJwt;
     
+    @Column(name = "createdAt", nullable = false)
+    @CreatedDate
+    private LocalDateTime createdAt;
+
 }
