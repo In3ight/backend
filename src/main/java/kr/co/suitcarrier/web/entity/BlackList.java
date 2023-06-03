@@ -15,6 +15,10 @@ public class BlackList {
     private Long id;
 
     @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "blacklist_id", referencedColumnName = "id")
+    private User blacklist_user;
+
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
