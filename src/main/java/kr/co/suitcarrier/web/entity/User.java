@@ -2,18 +2,11 @@ package kr.co.suitcarrier.web.entity;
 
 import java.util.UUID;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Getter;
 
 @Entity
@@ -30,6 +23,10 @@ public class User {
     @Column(name="uuid", unique = true, nullable = false)
     @GenericGenerator(name = "uuid4", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID uuid;
+
+    @OneToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "grade_id", referencedColumnName = "id")
+    private Grade grade;
 
     @Column(name="role", nullable = false)
     @ColumnDefault("'USER'")
@@ -60,6 +57,8 @@ public class User {
     @Column(name="enabled", nullable = false)
     @ColumnDefault("true")
     private boolean enabled;
+
+
 
     public enum Role {
         ADMIN, USER
