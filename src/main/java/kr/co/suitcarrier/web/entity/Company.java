@@ -12,7 +12,14 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "post_id", referencedColumnName = "id")
+    private Post post;
+
+    @Column(name="content")
+    private String content;
 }
