@@ -24,10 +24,6 @@ public class User {
     @GenericGenerator(name = "uuid4", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID uuid;
 
-    @OneToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "grade_id", referencedColumnName = "id")
-    private Grade grade;
-
     @Column(name="role", nullable = false)
     @ColumnDefault("'USER'")
     @Enumerated(EnumType.STRING)
@@ -57,8 +53,6 @@ public class User {
     @Column(name="enabled", nullable = false)
     @ColumnDefault("true")
     private boolean enabled;
-
-
 
     public enum Role {
         ADMIN, USER
