@@ -14,4 +14,8 @@ public class OrderState {
 
     @Column(name="state", nullable = false)
     private String state;
+
+    @OneToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    private Order order;
 }

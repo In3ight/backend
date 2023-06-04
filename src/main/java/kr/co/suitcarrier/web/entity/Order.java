@@ -20,10 +20,6 @@ public class Order {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @OneToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "order_state_id", referencedColumnName = "id")
-    private OrderState orderState;
-
     @Column(name="final_price", nullable = false)
     private String finalPrice;
 
