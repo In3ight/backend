@@ -22,4 +22,8 @@ public class Grade {
 
     @Column(name = "updateAt", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }
