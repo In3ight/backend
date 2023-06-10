@@ -6,27 +6,30 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.GenericGenerator;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @DynamicInsert
 @DynamicUpdate
+@RequiredArgsConstructor
 @Table(name = "user")
-public class User {
+public class User extends BaseTimeEntity {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="uuid", unique = true, nullable = false)
-    @GenericGenerator(name = "uuid4", strategy = "org.hibernate.id.UUIDGenerator")
-    private UUID uuid;
+    @Column(name="uuid", unique = true)
+    private String uuid;
 
-    @Column(name="role", nullable = false)
-    @ColumnDefault("'USER'")
+    @Column(name="role")
     @Enumerated(EnumType.STRING)
+    @ColumnDefault("'USER'")
     private Role role;
 
     @Column(name="email", unique = true, nullable = false)
@@ -44,18 +47,26 @@ public class User {
     @Column(name="contact", nullable = false)
     private String contact;
 
-    @Column(name="created_at", nullable = false)
-    private String createdAt;
-
-    @Column(name="updated_at", nullable = false)
-    private String updatedAt;
-
-    @Column(name="enabled", nullable = false)
+    @Column(name="enabled")
     @ColumnDefault("true")
     private boolean enabled;
 
     public enum Role {
         ADMIN, USER
     }
+
+    @Builder
+    public User(String name, String email, String nickname, String password, String contact) {
+        this.name = name;
+        this.email = email;
+        this.nickname = nickname;
+        this.password = password;
+        this.contact = contact;
+    }
     
+    @PrePersist
+    public void autofill() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
+
 }
