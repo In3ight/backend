@@ -13,5 +13,30 @@
     "name": "security.enable-csrf",
     "type": "java.lang.String",
     "description": "Enable CSRF Protection"
+  },
+  {
+    "name": "threads.core_pool_size",
+    "type": "java.lang.String",
+    "description": "Number of threads that are created when the thread pool is initialized"
+  },
+  {
+    "name": "threads.queue_capacity",
+    "type": "java.lang.String",
+    "description": "Maximum number of threads of the ThreadPoolTaskExecutor's ThreadPoolExecutor"
+  },
+  {
+    "name": "threads.max_pool_size",
+    "type": "java.lang.String",
+    "description": "Maximum number of threds in the wating queue"
+  },
+  {
+    "name": "springdoc.version",
+    "type": "java.lang.String",
+    "description": "Version of OpenAPI 3.0"
+  },
+  {
+    "name": "password.encoder.strength",
+    "type": "java.lang.String",
+    "description": "log rounds in BCrypt"
   }
 ]}

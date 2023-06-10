@@ -9,12 +9,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 public class AsyncConfig {
-    @Value("${CORE_POOL_SIZE}")
-    private static int CORE_POOL_SIZE;
-    @Value("${MAX_POOL_SIZE}")
-    private static int MAX_POOL_SIZE;
-    @Value("${QUEUE_CAPACITY}")
-    private static int QUEUE_CAPACITY;
+    @Value("${threads.core_pool_size}")
+    private int CORE_POOL_SIZE;
+    @Value("${threads.max_pool_size}")
+    private int MAX_POOL_SIZE;
+    @Value("${threads.queue_capacity}")
+    private int QUEUE_CAPACITY;
 
     @Bean
     public Executor taskExecutor() {
