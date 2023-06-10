@@ -12,6 +12,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.co.suitcarrier.web.dto.LoginRequestDto;
+import kr.co.suitcarrier.web.dto.SignupRequestDto;
 import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.service.CustomUserDetailsService;
 import kr.co.suitcarrier.web.service.RedisService;
@@ -190,6 +192,37 @@ public class AuthController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/emails/{email}")
+    @Operation(summary = "이메일 중복 확인", description = "이메일 중복 확인을 위해 해당 이메일 Count를 반환합니다. (0이면 중복 없음)")
+    public ResponseEntity<Integer> checkEmail(@PathVariable String email) {
+        return ResponseEntity.ok(customUserDetailsService.countByEmail(email));
+    }
+
+    @GetMapping("/contacts/{contact}")
+    @Operation(summary = "전화번호 중복 확인", description = "전화번호 중복 확인을 위해 해당 전화번호 Count를 반환합니다. (0이면 중복 없음)")
+    public ResponseEntity<Integer> checkContact(@PathVariable String contact) {
+        return ResponseEntity.ok(customUserDetailsService.countByContact(contact));
+    }
+
+    @PostMapping("/signup")
+    @Operation(summary = "회원가입", description = "필요 정보들을 전달하여 회원가입을 합니다. (이름, 이베일, 닉네임, 비밀번호(SHA3-256 해싱), 전화번호)")
+    public ResponseEntity<?> signup(SignupRequestDto signupRequestDto) {
+        try {
+            // 이메일 중복 확인
+            if(customUserDetailsService.countByEmail(signupRequestDto.getEmail()) != 0) {
+                throw new Exception("SignUp request with the duplicated email.");
+            }
+            // 비밀번호 해싱
+            signupRequestDto.setPassword(passwordEncoder.encode(signupRequestDto.getPassword()));
+            // 회원가입
+            customUserDetailsService.signup(signupRequestDto);
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }

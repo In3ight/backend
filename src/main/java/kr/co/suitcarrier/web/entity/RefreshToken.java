@@ -1,9 +1,5 @@
 package kr.co.suitcarrier.web.entity;
 
-import java.time.LocalDateTime;
-
-import org.springframework.data.annotation.CreatedDate;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,7 +16,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name="refreshToken")
-public class RefreshToken {
+public class RefreshToken extends BaseTimeEntityCreated {
+    
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,9 +29,5 @@ public class RefreshToken {
 
     @Column(name = "refreshJwt", nullable = false, unique = true)
     private String refreshJwt;
-    
-    @Column(name = "createdAt", nullable = false)
-    @CreatedDate
-    private LocalDateTime createdAt;
 
 }
