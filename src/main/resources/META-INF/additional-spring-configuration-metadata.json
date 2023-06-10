@@ -38,5 +38,15 @@
     "name": "password.encoder.strength",
     "type": "java.lang.String",
     "description": "log rounds in BCrypt"
+  },
+  {
+    "name": "test.jwt_access.secret",
+    "type": "java.lang.String",
+    "description": "Access Token(JWT) Secret Key for the JUnit Test"
+  },
+  {
+    "name": "test.jwt_refresh.secret",
+    "type": "java.lang.String",
+    "description": "Refresh Token(JWT) Secret Key for the JUnit Test"
   }
 ]}
