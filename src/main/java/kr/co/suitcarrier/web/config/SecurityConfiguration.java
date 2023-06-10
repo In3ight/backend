@@ -19,13 +19,16 @@ public class SecurityConfiguration {
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
 
+    @Value("${password.encoder.strength}")
+    private int strength;
+
     @Autowired
     private JwtFilter jwtFilter;
 
     // Password encoder, used by Spring to encode and verify user passwords
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(strength);
     }
 
     @Bean
