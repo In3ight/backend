@@ -88,7 +88,7 @@ public class JwtTokenUtil {
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(generalKey(JWT_REFRESH_SECRET_KEY), io.jsonwebtoken.SignatureAlgorithm.HS512)
+                .signWith(generalKey(JWT_REFRESH_SECRET_KEY), io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -158,7 +158,7 @@ public class JwtTokenUtil {
     private SecretKey generalKey(String key) {
         byte[] encodedKey = Base64.getDecoder().decode(key);
         // SecretKeySpec(byte[] key, int offset, int len, String algorithm)
-        SecretKey returnKey = new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA512");
+        SecretKey returnKey = new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA256");
         return returnKey;
     }
     
