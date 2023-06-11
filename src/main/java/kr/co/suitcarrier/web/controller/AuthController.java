@@ -27,6 +27,7 @@ import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.service.CustomUserDetailsService;
 import kr.co.suitcarrier.web.service.RedisService;
 import kr.co.suitcarrier.web.service.RefreshTokenService;
+// import kr.co.suitcarrier.web.service.LogService;
 import kr.co.suitcarrier.web.util.JwtTokenUtil;
 
 @Tag(name = "auth", description = "인증 관련 API")
@@ -52,6 +53,9 @@ public class AuthController {
 
     @Autowired
     RefreshTokenService refreshTokenService;
+
+    // @Autowired
+    // LogService LogService;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
@@ -225,4 +229,8 @@ public class AuthController {
         }
     }
 
+    // @GetMapping("/log")
+    // public void log() {
+    //     logService.log();
+    // }
 }
