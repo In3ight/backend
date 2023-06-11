@@ -55,7 +55,7 @@ public class AuthController {
     RefreshTokenService refreshTokenService;
 
     // @Autowired
-    // LogService LogService;
+    // LogService logService;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
