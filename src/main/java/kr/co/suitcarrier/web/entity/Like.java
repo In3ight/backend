@@ -1,6 +1,7 @@
 package kr.co.suitcarrier.web.entity;
 
 import jakarta.persistence.*;
+import kr.co.suitcarrier.web.entity.post.Post;
 import lombok.Getter;
 import lombok.Setter;
 
