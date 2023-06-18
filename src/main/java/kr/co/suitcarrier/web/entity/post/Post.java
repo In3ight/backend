@@ -1,6 +1,7 @@
-package kr.co.suitcarrier.web.entity;
+package kr.co.suitcarrier.web.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.suitcarrier.web.entity.User;
 import lombok.Getter;
 import org.hibernate.annotations.GenericGenerator;
 

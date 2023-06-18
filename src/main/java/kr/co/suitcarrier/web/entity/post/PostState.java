@@ -1,4 +1,4 @@
-package kr.co.suitcarrier.web.entity;
+package kr.co.suitcarrier.web.entity.post;
 
 import jakarta.persistence.*;
 import lombok.Getter;
