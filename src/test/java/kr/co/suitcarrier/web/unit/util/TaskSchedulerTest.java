@@ -62,3 +62,15 @@ public class RefreshJwtSchedulerTest {
 }
 
  */
+
+ /*
+    0. h2 DB 설정
+        - init할때 in3ight_sql.sql을 실행해서 DB Schema 생성
+    1. RefreshToken을 직접 h2 DB에 넣어준다
+        - created_at
+        - exp를 임의의 값으로
+        - Repository에서 구현
+    2. TaskScheduler -> deleteExpiredRefreshToken 호출해서 토큰 삭제
+    3. Repository -> findByRefreshJwtAndCreatedAt 호출해서 삭제한 토큰 있는지 조회(Null) 
+*/
+    
