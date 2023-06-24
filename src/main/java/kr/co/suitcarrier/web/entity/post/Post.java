@@ -1,8 +1,13 @@
 package kr.co.suitcarrier.web.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.suitcarrier.web.entity.BaseTimeEntity;
 import kr.co.suitcarrier.web.entity.User;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
@@ -10,8 +15,10 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
+@RequiredArgsConstructor
 @Table(name = "post")
-public class Post {
+public class Post extends BaseTimeEntity {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,22 +43,31 @@ public class Post {
     @Column(name="description", nullable = false)
     private String description;
 
-    @Column(name="default_price", nullable = false)
-    private String defaultPrice;
-
-    @Column(name="created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name="updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @Column(name="price", nullable = false)
+    private int price;
 
     @Column(name="is_deleted", nullable = false)
-    private int isDeleted;
+    @ColumnDefault("false")
+    private boolean isDeleted;
 
     @Column(name="additional_price", nullable = false)
-    private String additionalPrice;
+    private int additionalPrice;
 
-    @Column(name="uuid", unique = true, nullable = false)
-    @GenericGenerator(name = "uuid4", strategy = "org.hibernate.id.UUIDGenerator")
-    private UUID uuid;
+    @Column(name="uuid", unique = true)
+    private String uuid;
+
+    @Builder
+    public Post(String title, String description, int price, int additionalPrice, User user, PostState postState, Product product) {
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.additionalPrice = additionalPrice;
+        this.user = user;
+        this.postState = postState;
+        this.product = product;
+    }
+    @PrePersist
+    public void autofill() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 }
