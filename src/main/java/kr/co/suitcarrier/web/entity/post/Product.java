@@ -1,13 +1,18 @@
 package kr.co.suitcarrier.web.entity.post;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
+@RequiredArgsConstructor
 @Table(name = "product")
 public class Product {
     @Id
@@ -24,14 +29,15 @@ public class Product {
     @Column(name="name")
     private String name;
 
-    @Column(name="origin_price")
-    private String originPrice;
-
     @Column(name="brand")
     private String brand;
 
-    @Column(name="uuid", unique = true, nullable = false)
-    @GenericGenerator(name = "uuid4", strategy = "org.hibernate.id.UUIDGenerator")
-    private UUID uuid;
+    @Builder
+    public Product(String color, String size, String name, String brand) {
+        this.color = color;
+        this.size = size;
+        this.name = name;
+        this.brand = brand;
+    }
 
 }
