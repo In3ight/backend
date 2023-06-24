@@ -12,7 +12,7 @@ import kr.co.suitcarrier.web.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByUuid(UUID uuid);
+    Optional<User> findByUuid(String uuid);
     Optional<User> findByEmail(String email);
 
     // 이메일로 검색(회원가입 시 중복 가입 확인 목적으로 사용)
