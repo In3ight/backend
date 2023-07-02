@@ -96,7 +96,10 @@ public class OrderController {
             LocalDateTime returnDate = cartRequestDto.getReturnDate();
             Integer rentPossible = cartRequestDto.getRentPossible();
 
-            // 장바구니 중복 로직?
+            // 장바구니 중복 처리
+            if(cartService.canAddCart(postId, rentDate, returnDate) == false) {
+                throw new Exception("addCart : Already existing cart item");
+            }
 
             // 새로운 찜 생성
             cartService.createCartItem(userId, postId, rentDate, returnDate, rentPossible);
