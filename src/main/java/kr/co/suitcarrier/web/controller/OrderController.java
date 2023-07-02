@@ -5,6 +5,7 @@ import kr.co.suitcarrier.web.dto.CartDeleteRequestDto;
 import kr.co.suitcarrier.web.dto.LikeRequestDto;
 import kr.co.suitcarrier.web.service.CartService;
 import kr.co.suitcarrier.web.service.LikeService;
+import kr.co.suitcarrier.web.service.OrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class OrderController {
 
     @Autowired
     CartService cartService;
+
+    @Autowired
+    OrderService orderService;
 
     // 찜 조회
     @GetMapping("/like/{userId}")
@@ -125,6 +129,18 @@ public class OrderController {
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } 
+    }
+
+    // 주문기록 조회
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> listOrderByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(orderService.getOrderList(userId));
+    }
+
+    // 주문상태 확인
+    @GetMapping("/state/{orderStateId}")
+    public ResponseEntity<?> getOrderState(@PathVariable Integer orderStateId) {
+        return ResponseEntity.ok(orderService.getOrderState(orderStateId));
     }
 
 }
