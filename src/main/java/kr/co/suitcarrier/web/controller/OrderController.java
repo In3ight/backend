@@ -44,7 +44,7 @@ public class OrderController {
             Integer postId = likeRequestDto.getPost();
 
             // 찜 중복 확인
-            if(likeService.getLikeList(userId, postId) == null) {
+            if(likeService.getLike(userId, postId) != null) {
                 throw new Exception("createLike request with the duplicated like.");
             }
 
@@ -66,7 +66,7 @@ public class OrderController {
             Integer postId = likeRequestDto.getPost();
 
             // 찜 존재하는지 확인
-            if(likeService.getLikeList(userId, postId) == null) {
+            if(likeService.getLike(userId, postId) == null) {
                 throw new Exception("deleteLike request with no corresponding like.");
             }
 
