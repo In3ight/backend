@@ -29,7 +29,7 @@ public class LikeService {
     }
 
     @Transactional
-    public Optional<Like> getLikeList(Integer userId, Integer postId) {
+    public Optional<Like> getLike(Integer userId, Integer postId) {
         try {
             return likeRepository.findByUserAndPost(userId, postId);
         } catch (Exception e) {
