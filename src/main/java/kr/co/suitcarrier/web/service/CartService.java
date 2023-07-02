@@ -30,6 +30,16 @@ public class CartService {
     }
 
     @Transactional
+    public boolean canAddCart(Integer postId, LocalDateTime rentDate, LocalDateTime returnDate) {
+        try {
+            return (cartRepository.findByPostAndDateRange(postId, rentDate, returnDate) == null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    } 
+
+    @Transactional
     public boolean createCartItem(
         Integer userId, 
         Integer postId, 
