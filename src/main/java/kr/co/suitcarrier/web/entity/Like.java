@@ -2,11 +2,14 @@ package kr.co.suitcarrier.web.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "like")
 public class Like {
+
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,4 +22,5 @@ public class Like {
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     private Post post;
+
 }
