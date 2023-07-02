@@ -1,5 +1,11 @@
 package kr.co.suitcarrier.web.controller;
 
+import kr.co.suitcarrier.web.dto.CartRequestDto;
+import kr.co.suitcarrier.web.dto.CartDeleteRequestDto;
+import kr.co.suitcarrier.web.dto.LikeRequestDto;
+import kr.co.suitcarrier.web.service.CartService;
+import kr.co.suitcarrier.web.service.LikeService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,8 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import kr.co.suitcarrier.web.dto.LikeRequestDto;
-import kr.co.suitcarrier.web.service.LikeService;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/order")
@@ -22,9 +27,12 @@ public class OrderController {
     @Autowired
     LikeService likeService;
 
+    @Autowired
+    CartService cartService;
+
     // 찜 조회
     @GetMapping("/like/{userId}")
-    public ResponseEntity<?> listByUser(@PathVariable Integer userId) {
+    public ResponseEntity<?> listLikeByUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(likeService.getLikeList(userId));
     }
 
@@ -51,7 +59,7 @@ public class OrderController {
     } 
 
     // 찜 제거하기
-    @DeleteMapping("/delete")
+    @DeleteMapping("/like/delete")
     public ResponseEntity<?> deleteLike(@RequestBody LikeRequestDto likeRequestDto) {
         try {
             Integer userId = likeRequestDto.getUser();
@@ -64,6 +72,50 @@ public class OrderController {
 
             // 찜 삭제
             likeService.deleteLike(userId, postId);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        } 
+    }
+
+    // 장바구니 조회
+    @GetMapping("/cart/{userId}")
+    public ResponseEntity<?> listCartByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(cartService.getCartList(userId));
+    }
+
+    // 장바구니 담기
+    @PostMapping("/cart/add")
+    public ResponseEntity<?> addCart(@RequestBody CartRequestDto cartRequestDto) {
+        try {
+            Integer userId = cartRequestDto.getUser();
+            Integer postId = cartRequestDto.getPost();
+            LocalDateTime rentDate = cartRequestDto.getRentDate();
+            LocalDateTime returnDate = cartRequestDto.getReturnDate();
+            Integer rentPossible = cartRequestDto.getRentPossible();
+
+            // 장바구니 중복 로직?
+
+            // 새로운 찜 생성
+            cartService.createCartItem(userId, postId, rentDate, returnDate, rentPossible);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    } 
+
+    // 장바구니 삭제
+    @DeleteMapping("/cart/delete")
+    public ResponseEntity<?> removeCart(@RequestBody CartDeleteRequestDto cartRequestDto) {
+        try {
+            Integer cartId = cartRequestDto.getId();
+
+            // 장바구니 삭제
+            cartService.deleteCartItem(cartId);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
