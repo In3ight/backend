@@ -22,6 +22,9 @@ public class SecurityConfiguration {
     @Value("${password.encoder.strength}")
     private int strength;
 
+    @Value("${springdoc.api-docs.enabled:true}")
+    private boolean openApiEnabled;
+
     @Autowired
     private JwtFilter jwtFilter;
 
@@ -50,21 +53,38 @@ public class SecurityConfiguration {
             .contentSecurityPolicy("default-src 'self'");
 
         // Request PATH에 따른 요구 권한 설정
-        http
-            .authorizeHttpRequests((authorize) -> authorize
-                // .requestMatchers("/**").permitAll()
-                .requestMatchers("/api/hello").permitAll()
-                .requestMatchers("/auth/logout").authenticated()
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                .requestMatchers("/product/**").hasAuthority("USER")
-                .requestMatchers("/search/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                .requestMatchers("/api-docs/**").permitAll()
-                .requestMatchers("/swagger-ui/**").permitAll()
-                .anyRequest().denyAll()
-            );
+        if(openApiEnabled) {
+            http
+                .authorizeHttpRequests((authorize) -> authorize
+                    // .requestMatchers("/**").permitAll()
+                    .requestMatchers("/api/hello").permitAll()
+                    .requestMatchers("/auth/logout").authenticated()
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                    .requestMatchers("/product/**").hasAuthority("USER")
+                    .requestMatchers("/search/**").permitAll()
+                    .requestMatchers("/error").permitAll()
+                    .requestMatchers("/v3/api-docs/**").permitAll()
+                    .requestMatchers("/api-docs/**").permitAll()
+                    .requestMatchers("/swagger-ui/**").permitAll()
+                    .anyRequest().denyAll()
+                );
+        }
+        else {
+            // OpenAPI 미작동
+            http
+                .authorizeHttpRequests((authorize) -> authorize
+                    // .requestMatchers("/**").permitAll()
+                    .requestMatchers("/api/hello").permitAll()
+                    .requestMatchers("/auth/logout").authenticated()
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                    .requestMatchers("/product/**").hasAuthority("USER")
+                    .requestMatchers("/search/**").permitAll()
+                    .requestMatchers("/error").permitAll()
+                    .anyRequest().denyAll()
+                );
+        }
 
         // Add our custom JWT security filter
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
