@@ -2,7 +2,11 @@ package kr.co.suitcarrier.web.service;
 
 import kr.co.suitcarrier.web.dto.LikeRequestDto;
 import kr.co.suitcarrier.web.entity.Like;
+import kr.co.suitcarrier.web.entity.Post;
+import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.repository.LikeRepository;
+import kr.co.suitcarrier.web.repository.PostRepository;
+import kr.co.suitcarrier.web.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +21,8 @@ import java.util.Optional;
 public class LikeService {
 
     private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public List<Like> getLikeList(Integer userId) {
@@ -38,11 +44,17 @@ public class LikeService {
         }
     }
 
-    public boolean createLike(Integer userId, Integer postId) {
+    @Transactional
+    public boolean createLike(String userEmail, Integer postId) {
         try {
             Like likeEntity = new Like();
-            likeEntity.setUser(userId);
-            likeEntity.setPost(postId);
+
+            User user = userRepository.findByEmail(userEmail).get();
+            likeEntity.setUser(user);
+
+            Post post = postRepository.findById(postId);
+            likeEntity.setPost(post);
+
             likeRepository.save(likeEntity);
             return true;
         } catch (Exception e) {
@@ -51,6 +63,7 @@ public class LikeService {
         }
     }
 
+    @Transactional
     public boolean deleteLike(Integer userId, Integer postId) {
         try {
             likeRepository.deleteByUserAndPost(userId, postId);
