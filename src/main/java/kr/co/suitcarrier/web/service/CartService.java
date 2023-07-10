@@ -1,8 +1,11 @@
 package kr.co.suitcarrier.web.service;
 
-import kr.co.suitcarrier.web.dto.CartRequestDto;
 import kr.co.suitcarrier.web.entity.Cart;
+import kr.co.suitcarrier.web.entity.Post;
+import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.repository.CartRepository;
+import kr.co.suitcarrier.web.repository.PostRepository;
+import kr.co.suitcarrier.web.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 public class CartService {
 
     private final CartRepository cartRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public List<Cart> getCartList(Integer userId) {
@@ -41,7 +46,7 @@ public class CartService {
 
     @Transactional
     public boolean createCartItem(
-        Integer userId, 
+        String userEmail, 
         Integer postId, 
         LocalDateTime rentDate, 
         LocalDateTime returnDate, 
@@ -49,12 +54,18 @@ public class CartService {
     ) {
         try {
             Cart cartEntity = new Cart();
-            cartEntity.setUser(userId);
-            cartEntity.setPost(postId);
+
+            User user = userRepository.findByEmail(userEmail).get();
+            cartEntity.setUser(user);
+            
+            Post post = postRepository.findById(postId);
+            cartEntity.setPost(post);
+
             cartEntity.setRentDate(rentDate);
             cartEntity.setReturnDate(returnDate);
             cartEntity.setRentPossible(rentPossible);
             cartRepository.save(cartEntity);
+
             return true;
         } catch (Exception e) {
             e.printStackTrace();
