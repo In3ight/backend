@@ -2,6 +2,7 @@ package kr.co.suitcarrier.web.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "order")
 public class Order {
     @Id
