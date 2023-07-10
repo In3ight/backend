@@ -4,6 +4,8 @@ import kr.co.suitcarrier.web.config.CustomUserDetails;
 import kr.co.suitcarrier.web.dto.CartResponseDto;
 import kr.co.suitcarrier.web.dto.CartRequestDto;
 import kr.co.suitcarrier.web.dto.CartDeleteRequestDto;
+import kr.co.suitcarrier.web.dto.OrderResponseDto;
+import kr.co.suitcarrier.web.dto.OrderRequestDto;
 import kr.co.suitcarrier.web.dto.LikeResponseDto;
 import kr.co.suitcarrier.web.dto.LikeRequestDto;
 import kr.co.suitcarrier.web.service.CartService;
@@ -165,14 +167,33 @@ public class OrderController {
     }
 
     // 주문기록 조회
-    @GetMapping("/history")
+    @GetMapping("/")
     public ResponseEntity<?> listOrderByUser() {
         // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
         CustomUserDetails userDetails = (CustomUserDetails)principal; 
         Integer userId = Integer.parseInt(userDetails.getId());
-        
-        return ResponseEntity.ok(orderService.getOrderList(userId));
+
+        // ResponseDTO를 만들어서 클라이언트에게 전달
+        OrderResponseDto orderResponseDto = new OrderResponseDto(orderService.getOrderList(userId)); 
+        return ResponseEntity.ok(orderResponseDto);    
+    }
+
+    // 주문하기
+    @PostMapping("/")
+    public ResponseEntity<?> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
+        // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+        CustomUserDetails userDetails = (CustomUserDetails)principal; 
+        String userEmail = userDetails.getEmail(); 
+
+        String finalPrice = orderRequestDto.getFinalPrice();
+        LocalDateTime rentDate = orderRequestDto.getRentDate();
+        LocalDateTime createdAt = orderRequestDto.getCreatedAt();
+
+        // 새로운 찜 생성
+        orderService.createOrder(userEmail, finalPrice, rentDate, createdAt);
+        return ResponseEntity.ok().build();
     }
 
     // 주문상태 확인
