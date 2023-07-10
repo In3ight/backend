@@ -1,7 +1,10 @@
 package kr.co.suitcarrier.web.controller;
 
+import kr.co.suitcarrier.web.config.CustomUserDetails;
+import kr.co.suitcarrier.web.dto.CartResponseDto;
 import kr.co.suitcarrier.web.dto.CartRequestDto;
 import kr.co.suitcarrier.web.dto.CartDeleteRequestDto;
+import kr.co.suitcarrier.web.dto.LikeResponseDto;
 import kr.co.suitcarrier.web.dto.LikeRequestDto;
 import kr.co.suitcarrier.web.service.CartService;
 import kr.co.suitcarrier.web.service.LikeService;
@@ -9,6 +12,7 @@ import kr.co.suitcarrier.web.service.OrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,16 +39,29 @@ public class OrderController {
     OrderService orderService;
 
     // 찜 조회
-    @GetMapping("/like/{userId}")
-    public ResponseEntity<?> listLikeByUser(@PathVariable Integer userId) {
-        return ResponseEntity.ok(likeService.getLikeList(userId));
+    @GetMapping("/likes")
+    public ResponseEntity<?> listLikeByUser() {
+        // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+        CustomUserDetails userDetails = (CustomUserDetails)principal; 
+        Integer userId = Integer.parseInt(userDetails.getId());
+
+        // ResponseDTO를 만들어서 클라이언트에게 전달
+        LikeResponseDto likeResponseDto = new LikeResponseDto(likeService.getLikeList(userId)); 
+        return ResponseEntity.ok(likeResponseDto);
     }
 
     // 찜 추가하기
-    @PostMapping("/like/create")
+    @PostMapping("/likes")
     public ResponseEntity<?> createLike(@RequestBody LikeRequestDto likeRequestDto) {
         try {
-            Integer userId = likeRequestDto.getUser();
+            // SecurityContextHolder 현재 로그인 중인 유저 정보를 가져온다
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+            CustomUserDetails userDetails = (CustomUserDetails)principal; 
+            Integer userId = Integer.parseInt(userDetails.getId());
+            String userEmail = userDetails.getEmail(); 
+
+            //DTO에서 postId를 가져온다
             Integer postId = likeRequestDto.getPost();
 
             // 찜 중복 확인
@@ -53,7 +70,7 @@ public class OrderController {
             }
 
             // 새로운 찜 생성
-            likeService.createLike(userId, postId);
+            likeService.createLike(userEmail, postId);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
@@ -63,10 +80,15 @@ public class OrderController {
     } 
 
     // 찜 제거하기
-    @DeleteMapping("/like/delete")
+    @DeleteMapping("/likes")
     public ResponseEntity<?> deleteLike(@RequestBody LikeRequestDto likeRequestDto) {
         try {
-            Integer userId = likeRequestDto.getUser();
+            // SecurityContextHolder 현재 로그인 중인 유저 정보를 가져온다
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+            CustomUserDetails userDetails = (CustomUserDetails)principal; 
+            Integer userId = Integer.parseInt(userDetails.getId());
+
+            // DTO에서 postId를 가져온다
             Integer postId = likeRequestDto.getPost();
 
             // 찜 존재하는지 확인
@@ -85,16 +107,27 @@ public class OrderController {
     }
 
     // 장바구니 조회
-    @GetMapping("/cart/{userId}")
-    public ResponseEntity<?> listCartByUser(@PathVariable Integer userId) {
-        return ResponseEntity.ok(cartService.getCartList(userId));
+    @GetMapping("/cart")
+    public ResponseEntity<?> listCartByUser() {
+        // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+        CustomUserDetails userDetails = (CustomUserDetails)principal; 
+        Integer userId = Integer.parseInt(userDetails.getId());
+
+        // ResponseDTO를 만들어서 클라이언트에게 전달
+        CartResponseDto cartResponseDto = new CartResponseDto(cartService.getCartList(userId)); 
+        return ResponseEntity.ok(cartResponseDto);
     }
 
     // 장바구니 담기
-    @PostMapping("/cart/add")
+    @PostMapping("/cart")
     public ResponseEntity<?> addCart(@RequestBody CartRequestDto cartRequestDto) {
         try {
-            Integer userId = cartRequestDto.getUser();
+            // SecurityContextHolder 현재 로그인 중인 유저의 정보를 가져온다
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+            CustomUserDetails userDetails = (CustomUserDetails)principal; 
+            String userEmail = userDetails.getEmail(); 
+
             Integer postId = cartRequestDto.getPost();
             LocalDateTime rentDate = cartRequestDto.getRentDate();
             LocalDateTime returnDate = cartRequestDto.getReturnDate();
@@ -106,7 +139,7 @@ public class OrderController {
             }
 
             // 새로운 찜 생성
-            cartService.createCartItem(userId, postId, rentDate, returnDate, rentPossible);
+            cartService.createCartItem(userEmail, postId, rentDate, returnDate, rentPossible);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
@@ -116,7 +149,7 @@ public class OrderController {
     } 
 
     // 장바구니 삭제
-    @DeleteMapping("/cart/delete")
+    @DeleteMapping("/cart")
     public ResponseEntity<?> removeCart(@RequestBody CartDeleteRequestDto cartRequestDto) {
         try {
             Integer cartId = cartRequestDto.getId();
@@ -132,8 +165,13 @@ public class OrderController {
     }
 
     // 주문기록 조회
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> listOrderByUser(@PathVariable Integer userId) {
+    @GetMapping("/history")
+    public ResponseEntity<?> listOrderByUser() {
+        // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+        CustomUserDetails userDetails = (CustomUserDetails)principal; 
+        Integer userId = Integer.parseInt(userDetails.getId());
+        
         return ResponseEntity.ok(orderService.getOrderList(userId));
     }
 
