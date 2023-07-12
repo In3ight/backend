@@ -1,6 +1,7 @@
 package kr.co.suitcarrier.web.controller;
 
 import kr.co.suitcarrier.web.dto.PostCreateRequestDto;
+import kr.co.suitcarrier.web.dto.ReviewCreateRequestDto;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.service.PostService;
@@ -31,6 +32,11 @@ public class PostController {
 //
 //        return null;
 //    }
+
+    @PostMapping("/{postId}/createReview")
+    public ResponseEntity<?> createReview( @PathVariable("postId") Long postId, @RequestBody ReviewCreateRequestDto requestDto) {
+        return postService.createReview(requestDto, postId);
+    }
 
 }
 
