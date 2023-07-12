@@ -2,10 +2,13 @@ package kr.co.suitcarrier.web.service;
 
 import kr.co.suitcarrier.web.config.CustomUserDetails;
 import kr.co.suitcarrier.web.dto.PostCreateRequestDto;
+import kr.co.suitcarrier.web.dto.ReviewCreateRequestDto;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.entity.post.PostState;
 import kr.co.suitcarrier.web.entity.post.Product;
+import kr.co.suitcarrier.web.entity.post.Review;
+import kr.co.suitcarrier.web.repository.ReviewRepository;
 import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.repository.post.*;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class PostService {
     private final RentalDateRepository rentalDateRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public ResponseEntity<?> createPost(PostCreateRequestDto requestDto) {
@@ -103,4 +104,30 @@ public class PostService {
     public void getPostList() {
     }
 
+    public ResponseEntity<?> createReview(ReviewCreateRequestDto requestDto, Long postId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            String uuid = userDetails.getUuid();
+
+            User user = userRepository.findByUuid(uuid).get();
+            Post post = postRepository.findById(postId).get();
+            if (post != null) {
+                Long reviewId = reviewRepository.save(requestDto.toEntity(user, post)).getId();
+                return ResponseEntity.ok(reviewId);
+            } else {
+                System.out.println("아이디:"+postId);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(postId + " 게시물이 존재하지 않음");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("리뷰 생성 실패");
+        }
+
+    }
 }
