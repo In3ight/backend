@@ -1,6 +1,6 @@
 package kr.co.suitcarrier.web.repository;
 
-import kr.co.suitcarrier.web.entity.Review;
+import kr.co.suitcarrier.web.entity.post.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
