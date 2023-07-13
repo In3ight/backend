@@ -3,6 +3,7 @@ package kr.co.suitcarrier.web.service;
 import kr.co.suitcarrier.web.config.CustomUserDetails;
 import kr.co.suitcarrier.web.dto.PostCreateRequestDto;
 import kr.co.suitcarrier.web.dto.ReviewCreateRequestDto;
+import kr.co.suitcarrier.web.dto.ReviewUpdateRequestDto;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.entity.post.PostState;
@@ -104,6 +105,7 @@ public class PostService {
     public void getPostList() {
     }
 
+    @Transactional
     public ResponseEntity<?> createReview(ReviewCreateRequestDto requestDto, Long postId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -129,5 +131,15 @@ public class PostService {
                     .body("리뷰 생성 실패");
         }
 
+    }
+
+    @Transactional
+    public ResponseEntity<?> updateReview(ReviewUpdateRequestDto requestDto, Long reviewId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 없습니다. id=" + reviewId));
+        review.update(requestDto.getContent());
+
+        return ResponseEntity.ok(reviewId);
     }
 }
