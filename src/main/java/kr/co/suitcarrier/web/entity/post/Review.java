@@ -38,11 +38,11 @@ public class Review {
     private String content;
 
     @CreatedDate
-    @Column(name="created_at", nullable = false)
+    @Column(name="created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name="updated_at", updatable = false, nullable = false)
+    @Column(name="updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name="blind", nullable = false)
@@ -53,6 +53,10 @@ public class Review {
     public Review(User user, Post post, String content) {
         this.user = user;
         this.post = post;
+        this.content = content;
+    }
+
+    public void update(String content) {
         this.content = content;
     }
 }
