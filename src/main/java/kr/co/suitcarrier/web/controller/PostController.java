@@ -22,10 +22,15 @@ public class PostController {
         return postService.createPost(requestDto);
     }
 
+    @GetMapping("/{postId}/delete")
+    public ResponseEntity<?> deletePost(@PathVariable("postId") Long postId) {
+        return postService.deletePost(postId);
+    }
+
     // 게시글 상세조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable("postId") Long postid) {
-        return postService.getPost(postid);
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable("postId") Long postId) {
+        return postService.getPost(postId);
     }
 
     // 매물 검색
