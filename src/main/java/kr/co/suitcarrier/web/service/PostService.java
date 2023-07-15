@@ -1,8 +1,7 @@
 package kr.co.suitcarrier.web.service;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.suitcarrier.web.config.CustomUserDetails;
-import kr.co.suitcarrier.web.dto.*;
+import kr.co.suitcarrier.web.dto.post.*;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.entity.post.PostState;
@@ -183,9 +182,15 @@ public class PostService {
     }
 
     @Transactional
-    public void getPostList() {
-    }
+    public ResponseEntity<ListingResponseDto> listingPosts() {
+        // 최신순으로 게시글 가져오기
+        List<PostCardResponseDto> dtos = postRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(post -> PostCardResponseDto.builder().post(post).build())
+                .collect(Collectors.toList());
 
+        return ResponseEntity.ok(ListingResponseDto.builder().postCardResponseDtos(dtos).build());
+    }
 
     @Transactional
     public void test() {
@@ -201,5 +206,6 @@ public class PostService {
         } else {
         }
     }
+
 
 }
