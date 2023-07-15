@@ -1,9 +1,8 @@
 package kr.co.suitcarrier.web.service;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.suitcarrier.web.config.CustomUserDetails;
-import kr.co.suitcarrier.web.dto.PostCreateRequestDto;
-import kr.co.suitcarrier.web.dto.ReviewCreateRequestDto;
-import kr.co.suitcarrier.web.dto.ReviewUpdateRequestDto;
+import kr.co.suitcarrier.web.dto.*;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.entity.post.PostState;
@@ -19,6 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +89,85 @@ public class PostService {
     }
 
     @Transactional
+    public ResponseEntity<PostResponseDto> getPost(Long postid) {
+        Post post = postRepository.findById(postid)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postid));
+
+        Product product = post.getProduct();
+        PostState postState = post.getPostState();
+
+        PostResponseDto responseDto = new PostResponseDto(post);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @Transactional
+    public ResponseEntity<?> createReview(ReviewCreateRequestDto requestDto, Long postId) {
+        // 대여 이력이 있는 유저만 리뷰 작성 가능해야됨. 추후 로직 추가할 것
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String uuid = userDetails.getUuid();
+
+        User user = userRepository.findByUuid(uuid).get();
+        Post post = postRepository.findById(postId).get();
+        if (post != null) {
+            Long reviewId = reviewRepository.save(requestDto.toEntity(user, post)).getId();
+            return ResponseEntity.ok(reviewId);
+        } else {
+            System.out.println("아이디:"+postId);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(postId + " 게시물이 존재하지 않음");
+        }
+
+    }
+
+    @Transactional
+    public ResponseEntity<?> updateReview(ReviewUpdateRequestDto requestDto, Long reviewId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String uuid = userDetails.getUuid();
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다. id=" + uuid));
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 없습니다. id=" + reviewId));
+
+        // 리뷰 작성자와 요청한 유저 비교
+        if(!review.getUser().getUuid().equals(uuid)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("접근 권한이 없는 사용자입니다.");
+        }
+
+        review.update(requestDto.getContent());
+
+        return ResponseEntity.ok(reviewId);
+    }
+
+    @Transactional
+    public ResponseEntity<SearchResponseDto> searchPosts(SearchRequestDto requestDto) {
+//        private double longitude;
+//        private double latitude;
+
+//        color, brand, size에 null 입력 시 해당 조건은 무시됨.
+//        예를 들어 color에 null 값이 들어오면 모든 색상의 게시글이 조회됨
+
+        List<PostCardResponseDto> dtos = postRepository.findByConditions(requestDto.getColor(), requestDto.getBrand(), requestDto.getSize(),
+                        requestDto.getMinPrice(), requestDto.getMaxPrice())
+                .stream()
+                .map(post -> PostCardResponseDto.builder().post(post).build())
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(SearchResponseDto.builder().postCardResponseDtos(dtos).build());
+    }
+
+
+    @Transactional
+    public void getPostList() {
+    }
+
+
+
+    @Transactional
     public void test() {
         User user;
 
@@ -101,45 +182,4 @@ public class PostService {
         }
     }
 
-    @Transactional
-    public void getPostList() {
-    }
-
-    @Transactional
-    public ResponseEntity<?> createReview(ReviewCreateRequestDto requestDto, Long postId) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            String uuid = userDetails.getUuid();
-
-            User user = userRepository.findByUuid(uuid).get();
-            Post post = postRepository.findById(postId).get();
-            if (post != null) {
-                Long reviewId = reviewRepository.save(requestDto.toEntity(user, post)).getId();
-                return ResponseEntity.ok(reviewId);
-            } else {
-                System.out.println("아이디:"+postId);
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .body(postId + " 게시물이 존재하지 않음");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body("리뷰 생성 실패");
-        }
-
-    }
-
-    @Transactional
-    public ResponseEntity<?> updateReview(ReviewUpdateRequestDto requestDto, Long reviewId) {
-
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 없습니다. id=" + reviewId));
-        review.update(requestDto.getContent());
-
-        return ResponseEntity.ok(reviewId);
-    }
 }

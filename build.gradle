@@ -46,6 +46,9 @@ dependencies {
 
 	// SMS 서비스
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	// https://docs.spring.io/spring-boot/docs/1.5.16.RELEASE/reference/html/using-boot-devtools.html
+	compileOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 tasks.named('test') {

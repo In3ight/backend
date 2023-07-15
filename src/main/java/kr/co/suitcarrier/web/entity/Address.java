@@ -17,8 +17,8 @@ public class Address {
     private User user;
 
     @Column(name="longitude", nullable = false)
-    private Long longitude;
+    private double longitude;
 
     @Column(name="latitude", nullable = false)
-    private Long latitude;
+    private double latitude;
 }
