@@ -89,6 +89,28 @@ public class PostService {
     }
 
     @Transactional
+    public ResponseEntity<?> deletePost(Long postId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String uuid = userDetails.getUuid();
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다. id=" + uuid));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+        // 게시글 작성자와 요청한 유저 비교
+        if(!post.getUser().getUuid().equals(uuid)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("접근 권한이 없는 사용자입니다.");
+        }
+
+        // 게시글 논리삭제 (실제로 삭제되지 않지만, 논리삭제된 데이터는 모든 쿼리에서 사전 제외됨)
+        post.updateIsDeleted(true);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Transactional
     public ResponseEntity<PostResponseDto> getPost(Long postid) {
         Post post = postRepository.findById(postid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postid));
@@ -160,11 +182,9 @@ public class PostService {
         return ResponseEntity.ok(SearchResponseDto.builder().postCardResponseDtos(dtos).build());
     }
 
-
     @Transactional
     public void getPostList() {
     }
-
 
 
     @Transactional

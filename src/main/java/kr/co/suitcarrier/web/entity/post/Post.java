@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Setter
 @RequiredArgsConstructor
 @Table(name = "post")
+@Where(clause = "is_deleted = 0")
 public class Post extends BaseTimeEntity {
     @Id
     @Column(name="id")
@@ -66,6 +68,12 @@ public class Post extends BaseTimeEntity {
         this.postState = postState;
         this.product = product;
     }
+
+    // 게시글 논리삭제
+    public void updateIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
     @PrePersist
     public void autofill() {
         this.setUuid(UUID.randomUUID().toString());
