@@ -1,9 +1,6 @@
-package kr.co.suitcarrier.web.dto;
+package kr.co.suitcarrier.web.dto.post;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.suitcarrier.web.entity.post.Post;
-import kr.co.suitcarrier.web.entity.post.PostState;
-import kr.co.suitcarrier.web.entity.post.Product;
 import lombok.*;
 
 import java.util.List;

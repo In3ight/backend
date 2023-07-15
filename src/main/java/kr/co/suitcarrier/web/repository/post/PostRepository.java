@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findTop5ByOrderByCreatedAtDesc();    // 임시 코드. 추천 알고리즘 새로 작성해야.
+    List<Post> findAllByOrderByCreatedAtDesc();    // 임시 코드. 추천 알고리즘 새로 작성해야.
 
     // 다중조건 검색
     @Query("select p from Post p where (:color is null or p.product.color = :color) and (:brand is null or p.product.brand = :brand)" +
