@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 public class RedisService {
     
     private static final long JWT_ACCESS_EXPIRATION_TIME = 3600; // 1 hour
+    private static final long EMAIL_VERIFICATION_EXPIRATION_TIME = 300; // 5 minutes
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -26,7 +27,15 @@ public class RedisService {
         redisTemplate.opsForValue().set(key, value, JWT_ACCESS_EXPIRATION_TIME, TimeUnit.SECONDS);
     }
 
+    public void setVerificationCode(String key, String value) {
+        redisTemplate.opsForValue().set(key, value, EMAIL_VERIFICATION_EXPIRATION_TIME, TimeUnit.SECONDS);
+    }
+
     public String get(String key) {
         return redisTemplate.opsForValue().get(key);
+    }
+
+    public boolean delete(String key) {
+        return redisTemplate.delete(key);
     }
 }
