@@ -2,6 +2,10 @@ package kr.co.suitcarrier.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.Cookie;
@@ -25,6 +30,7 @@ import kr.co.suitcarrier.web.dto.LoginRequestDto;
 import kr.co.suitcarrier.web.dto.SignupRequestDto;
 import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.service.CustomUserDetailsService;
+import kr.co.suitcarrier.web.service.EmailService;
 import kr.co.suitcarrier.web.service.RedisService;
 import kr.co.suitcarrier.web.service.RefreshTokenService;
 // import kr.co.suitcarrier.web.service.LogService;
@@ -36,9 +42,11 @@ import kr.co.suitcarrier.web.util.JwtTokenUtil;
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
-    private String accessTokenCookieName = "SC_access_token";
-    private String refreshTokenCookieName = "SC_refresh_token";
-    private String accessTokenRedisPrefix = "REDIS_JWT_";
+    private static final String accessTokenCookieName = "SC_access_token";
+    private static final String refreshTokenCookieName = "SC_refresh_token";
+    private static final String accessTokenRedisPrefix = "REDIS_JWT_";
+    private static final String signUpVerifyingRedisPrefix = "SIGN_UP_VERIFYING_";
+    private static final String signUpVerifiedRedisPrefix = "SIGN_UP_VERIFIED_";
 
     private final CookieCsrfTokenRepository cookieCsrfTokenRepository = new CookieCsrfTokenRepository();
     
@@ -53,6 +61,9 @@ public class AuthController {
 
     @Autowired
     RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private EmailService emailService;
 
     // @Autowired
     // LogService logService;
@@ -210,7 +221,50 @@ public class AuthController {
         return ResponseEntity.ok(customUserDetailsService.countByContact(contact));
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/sign-up/emails")
+    @Operation(summary = "이메일 인증번호 전송", description = "이메일 소유 여부 확인을 위해 해당 이메일로 인증번호를 발송합니다.")
+    public ResponseEntity<?> sendSignUpVerificationEmail(@RequestParam(name="email") String email) {
+        email = URLDecoder.decode(email, StandardCharsets.UTF_8);
+        try {
+            // 인증번호 생성
+            String verificationCode = String.valueOf((int)(Math.floor(Math.random()*1000000)));
+            // 인증번호 Redis에 저장
+            redisService.setVerificationCode(signUpVerifyingRedisPrefix + email, verificationCode);
+            // 이메일 전송
+            emailService.sendSignUpVerificationEmail(email, email, verificationCode);
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/sign-up/verification/emails")
+    @Operation(summary = "이메일 인증번호 확인", description = "이메일로 전송된 인증번호를 확인합니다.")
+    public ResponseEntity<?> checkSignUpVerificationEmail(@RequestParam(name="email") String email, @RequestParam(name="verificationCode") String verificationCode) {
+        email = URLDecoder.decode(email, StandardCharsets.UTF_8);
+        try {
+            // Redis에서 인증번호 가져오기
+            String redisVerificationCode = redisService.get(signUpVerifyingRedisPrefix + email);
+            // 인증번호 확인
+            if(redisVerificationCode.equals(verificationCode)) {
+                redisService.delete(signUpVerifyingRedisPrefix + email);
+                // 인증된 이메일을 Redis에 일정 시간 동안 저장, 시간 내에 회원가입 완료 필요
+                redisService.setVerificationCode(signUpVerifiedRedisPrefix + email, email);
+                return ResponseEntity.ok().build();
+            }
+            else {
+                return ResponseEntity.badRequest().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    // @PostMapping("/sign-up/phone-numbers")    
+
+    @PostMapping("/accounts")
     @Operation(summary = "회원가입", description = "필요 정보들을 전달하여 회원가입을 합니다. (이름, 이베일, 닉네임, 비밀번호(SHA3-256 해싱), 전화번호)")
     public ResponseEntity<?> signup(SignupRequestDto signupRequestDto) {
         try {
@@ -218,10 +272,16 @@ public class AuthController {
             if(customUserDetailsService.countByEmail(signupRequestDto.getEmail()) != 0) {
                 throw new Exception("SignUp request with the duplicated email.");
             }
+            // 인증된 이메일 여부 확인
+            if(redisService.get(signUpVerifiedRedisPrefix+signupRequestDto.getEmail()) == null) {
+                throw new Exception("SignUp request with the unverified email.");
+            }
+            redisService.delete(signUpVerifiedRedisPrefix + signupRequestDto.getEmail());
             // 비밀번호 해싱
             signupRequestDto.setPassword(passwordEncoder.encode(signupRequestDto.getPassword()));
             // 회원가입
             customUserDetailsService.signup(signupRequestDto);
+            emailService.sendSignUpCompleteEmail(signupRequestDto.getEmail(), signupRequestDto.getName());
             return ResponseEntity.ok().build();       
         } catch (Exception e) {
             e.printStackTrace();
