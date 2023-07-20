@@ -12,10 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.co.suitcarrier.web.config.CustomUserDetails;
 import kr.co.suitcarrier.web.dto.LoginRequestDto;
 import kr.co.suitcarrier.web.dto.SignupRequestDto;
 import kr.co.suitcarrier.web.repository.UserRepository;
@@ -47,8 +48,6 @@ public class AuthController {
     private static final String accessTokenRedisPrefix = "REDIS_JWT_";
     private static final String signUpVerifyingRedisPrefix = "SIGN_UP_VERIFYING_";
     private static final String signUpVerifiedRedisPrefix = "SIGN_UP_VERIFIED_";
-
-    private final CookieCsrfTokenRepository cookieCsrfTokenRepository = new CookieCsrfTokenRepository();
     
     @Autowired
     UserRepository userRepository;
@@ -152,7 +151,6 @@ public class AuthController {
         }
     }
 
-    // 보안 위해 CSRF 적용
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "refresh token을 삭제합니다.")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -198,17 +196,6 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
     
-    @GetMapping("/getCsrfToken")
-    @Operation(summary = "CSRF 토큰 발급", description = "CSRF 토큰이 없을 경우에 토큰이 필요한 api를 요청할 때 사용합니다.")
-    public ResponseEntity<?> getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
-        CsrfToken csrfToken = cookieCsrfTokenRepository.generateToken(request);
-        Cookie cookie = new Cookie("XSRF-TOKEN", csrfToken.getToken());
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/emails/{email}")
     @Operation(summary = "이메일 중복 확인", description = "이메일 중복 확인을 위해 해당 이메일 Count를 반환합니다. (0이면 중복 없음)")
     public ResponseEntity<Integer> checkEmail(@PathVariable String email) {
@@ -239,8 +226,8 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/sign-up/verification/emails")
-    @Operation(summary = "이메일 인증번호 확인", description = "이메일로 전송된 인증번호를 확인합니다.")
+    @PostMapping("/sign-up/emails/verification")
+    @Operation(summary = "이메일 인증번호 확인", description = "이메일로 전송된 인증번호를 확인합니다. 일정 기간 내에 변경해야 합니다.")
     public ResponseEntity<?> checkSignUpVerificationEmail(@RequestParam(name="email") String email, @RequestParam(name="verificationCode") String verificationCode) {
         email = URLDecoder.decode(email, StandardCharsets.UTF_8);
         try {
@@ -262,11 +249,51 @@ public class AuthController {
         }
     }
     
-    // @PostMapping("/sign-up/phone-numbers")    
+    @PostMapping("/sign-up/contacts")
+    @Operation(summary = "전화번호 인증번호 전송", description = "전화번호 소유 여부 확인을 위해 해당 전화번호로 인증번호를 발송합니다.")
+    public ResponseEntity<?> sendSignUpVerificationContact(@RequestParam(name="contact") String contact) {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/sign-up/contacts/verification")
+    @Operation(summary = "전화번호 인증번호 확인", description = "전화번호로 전송된 인증번호를 확인합니다.")
+    public ResponseEntity<?> checkSignUpVerificationContact(@RequestParam(name="contact") String email, @RequestParam(name="verificationCode") String verificationCode) {
+        try {
+            String redisVerificationCode = null;
+            // 인증번호 확인
+            if(redisVerificationCode.equals(verificationCode)) {
+                return ResponseEntity.ok().build();
+            }
+            else {
+                return ResponseEntity.badRequest().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+      
+    @GetMapping("/accounts")
+    @Operation(summary = "회원정보 조회", description = "회원정보를 조회합니다.")
+    public ResponseEntity<?> getAccount(HttpServletResponse response) {
+        try {
+            // user 정보 반환
+            CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @PostMapping("/accounts")
     @Operation(summary = "회원가입", description = "필요 정보들을 전달하여 회원가입을 합니다. (이름, 이베일, 닉네임, 비밀번호(SHA3-256 해싱), 전화번호)")
-    public ResponseEntity<?> signup(SignupRequestDto signupRequestDto) {
+    public ResponseEntity<?> signupAccount(SignupRequestDto signupRequestDto) {
         try {
             // 이메일 중복 확인
             if(customUserDetailsService.countByEmail(signupRequestDto.getEmail()) != 0) {
@@ -282,6 +309,104 @@ public class AuthController {
             // 회원가입
             customUserDetailsService.signup(signupRequestDto);
             emailService.sendSignUpCompleteEmail(signupRequestDto.getEmail(), signupRequestDto.getName());
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/accounts")
+    @Operation(summary = "회원탈퇴", description = "회원탈퇴를 합니다.")
+    public ResponseEntity<?> deleteAccount() {
+        try {
+            // user 테이블 enabled 0으로 변경, 자정에 스케줄러가 삭제
+            customUserDetailsService.deleteById();
+            // user의 모든 정보 삭제
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/accounts/contact")
+    @Operation(summary = "전화번호 변경 인증번호 발송", description = "전화번호를 변경하기 위해 새로운 전화번호로 인증번호를 발송합니다.")
+    public ResponseEntity<?> sendChangeContactVerificationContact(@RequestParam(name="contact") String contact) {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/accounts/contact/verification")
+    @Operation(summary = "전화번호 변경 인증번호 확인", description = "전화번호 변경을 위해 전송된 인증번호를 확인합니다. 일정 기간 내에 변경해야 합니다.")
+    public ResponseEntity<?> checkChangeContactVerificationContact(@RequestParam(name="contact") String email, @RequestParam(name="verificationCode") String verificationCode) {
+        try {
+            String redisVerificationCode = null;
+            // 인증번호 확인
+            if(redisVerificationCode.equals(verificationCode)) {
+                return ResponseEntity.ok().build();
+            }
+            else {
+                return ResponseEntity.badRequest().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/accounts/email")
+    @Operation(summary = "전화번호로 이메일 찾기", description = "전화번호로 이메일 전송을 전송합니다.")
+    public ResponseEntity<?> sendEmailToContact() {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/accounts/password")
+    @Operation(summary = "이메일로 임시 비밀번호 발송", description = "임시 비밀번호를 생성해 이메일로 전송합니다.")
+    public ResponseEntity<?> sendTemporaryPasswordToEmail() {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PatchMapping("/accounts/email")
+    @Operation(summary = "비밀번호를 변경합니다.", description = "현재 비밀번호와 새 비밀번호를 전송하여 비밀번호를 변경합니다.")
+    public ResponseEntity<?> changePassword(@RequestParam(name="oldPassword") String oldPassword, @RequestParam(name="newPassword") String newPassword) {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/accounts/{nickname}")
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인을 위해 해당 닉네임 Count를 반환합니다. (0이면 중복 없음)")
+    public ResponseEntity<Integer> checkNickname(@PathVariable(name="nickname") String nickname) {
+        try {
+            return ResponseEntity.ok().build();       
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/accounts/nickname")
+    @Operation(summary = "닉네임 변경", description = "닉네임을 변경합니다.")
+    public ResponseEntity<?> changeNickname(@RequestParam(name="nickname") String nickname) {
+        try {
             return ResponseEntity.ok().build();       
         } catch (Exception e) {
             e.printStackTrace();

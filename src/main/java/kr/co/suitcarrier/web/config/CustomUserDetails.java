@@ -23,6 +23,10 @@ public class CustomUserDetails implements UserDetails {
 	private String password;
 	private boolean enabled;
 
+    public Long getId() {
+        return this.id;
+    }
+
     public String getUuid() {
         return this.uuid;
     }
