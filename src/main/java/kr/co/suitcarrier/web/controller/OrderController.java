@@ -72,7 +72,7 @@ public class OrderController {
             }
 
             // 새로운 찜 생성
-            likeService.createLike(userEmail, postId);
+            // likeService.createLike(userEmail, postId);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class OrderController {
             }
 
             // 새로운 찜 생성
-            cartService.createCartItem(userEmail, postId, rentDate, returnDate, rentPossible);
+            // cartService.createCartItem(userEmail, postId, rentDate, returnDate, rentPossible);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {

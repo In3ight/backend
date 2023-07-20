@@ -44,34 +44,34 @@ public class CartService {
         }
     } 
 
-    @Transactional
-    public boolean createCartItem(
-        String userEmail, 
-        Integer postId, 
-        LocalDateTime rentDate, 
-        LocalDateTime returnDate, 
-        Integer rentPossible
-    ) {
-        try {
-            Cart cartEntity = new Cart();
+    // @Transactional
+    // public boolean createCartItem(
+    //     String userEmail, 
+    //     Integer postId, 
+    //     LocalDateTime rentDate, 
+    //     LocalDateTime returnDate, 
+    //     Integer rentPossible
+    // ) {
+    //     try {
+    //         Cart cartEntity = new Cart();
 
-            User user = userRepository.findByEmail(userEmail).get();
-            cartEntity.setUser(user);
+    //         User user = userRepository.findByEmail(userEmail).get();
+    //         cartEntity.setUser(user);
             
-            Post post = postRepository.findById(postId);
-            cartEntity.setPost(post);
+    //         Post post = postRepository.findById(postId);
+    //         cartEntity.setPost(post);
 
-            cartEntity.setRentDate(rentDate);
-            cartEntity.setReturnDate(returnDate);
-            cartEntity.setRentPossible(rentPossible);
-            cartRepository.save(cartEntity);
+    //         cartEntity.setRentDate(rentDate);
+    //         cartEntity.setReturnDate(returnDate);
+    //         cartEntity.setRentPossible(rentPossible);
+    //         cartRepository.save(cartEntity);
 
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    //         return true;
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         return false;
+    //     }
+    // }
 
     @Transactional
     public boolean deleteCartItem(Integer cartId) {
