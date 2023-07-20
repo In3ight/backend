@@ -44,24 +44,24 @@ public class LikeService {
         }
     }
 
-    @Transactional
-    public boolean createLike(String userEmail, Integer postId) {
-        try {
-            Like likeEntity = new Like();
+    // @Transactional
+    // public boolean createLike(String userEmail, Integer postId) {
+    //     try {
+    //         Like likeEntity = new Like();
 
-            User user = userRepository.findByEmail(userEmail).get();
-            likeEntity.setUser(user);
+    //         User user = userRepository.findByEmail(userEmail).get();
+    //         likeEntity.setUser(user);
 
-            Post post = postRepository.findById(postId);
-            likeEntity.setPost(post);
+    //         Post post = postRepository.findById(postId);
+    //         likeEntity.setPost(post);
 
-            likeRepository.save(likeEntity);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    //         likeRepository.save(likeEntity);
+    //         return true;
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         return false;
+    //     }
+    // }
 
     @Transactional
     public boolean deleteLike(Integer userId, Integer postId) {
