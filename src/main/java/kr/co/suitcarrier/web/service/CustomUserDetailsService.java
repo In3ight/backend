@@ -1,6 +1,7 @@
 package kr.co.suitcarrier.web.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -52,6 +53,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     // 전화번호로 검색(회원가입 시 중복 전화 확인 목적으로 사용)
     public int countByContact(String contact) {
         return userRepository.countByContact(contact);
+    }
+
+    // 회원탈퇴 (uer 테이블에서 enabled 컬럼을 0으로 업데이트)
+    public void deleteById() {
+        userRepository.updateEnabledZeroById(((CustomUserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+    }
+
+    // 회원탈퇴 취소 (uer 테이블에서 enabled 컬럼을 1로 업데이트)
+    public void cancelDeleteById() {
+        userRepository.updateEnabledOneById(((CustomUserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
     }
 
     // 회원가입
