@@ -34,6 +34,7 @@ import kr.co.suitcarrier.web.service.CustomUserDetailsService;
 import kr.co.suitcarrier.web.service.EmailService;
 import kr.co.suitcarrier.web.service.RedisService;
 import kr.co.suitcarrier.web.service.RefreshTokenService;
+import kr.co.suitcarrier.web.service.SmsService;
 // import kr.co.suitcarrier.web.service.LogService;
 import kr.co.suitcarrier.web.util.JwtTokenUtil;
 
@@ -46,8 +47,14 @@ public class AuthController {
     private static final String accessTokenCookieName = "SC_access_token";
     private static final String refreshTokenCookieName = "SC_refresh_token";
     private static final String accessTokenRedisPrefix = "REDIS_JWT_";
-    private static final String signUpVerifyingRedisPrefix = "SIGN_UP_VERIFYING_";
-    private static final String signUpVerifiedRedisPrefix = "SIGN_UP_VERIFIED_";
+    private static final String emailSignUpVerifyingRedisPrefix = "EMAIL_SIGN_UP_VERIFYING_";
+    private static final String emailSignUpVerifiedRedisPrefix = "EMAIL_SIGN_UP_VERIFIED_";
+    private static final String contactSignUpVerifyingRedisPrefix = "CONTACT_SIGN_UP_VERIFYING_";
+    private static final String contactSignUpVerifiedRedisPrefix = "CONTACT_SIGN_UP_VERIFIED_";
+    private static final String emailChangeVerifyingRedisPrefix = "EMAIL_CHANGE_VERIFYING_";
+    private static final String emailChangeVerifiedRedisPrefix = "EMAIL_CHANGE_VERIFIED_";
+    private static final String contactChangeVerifyingRedisPrefix = "CONTACT_CHANGE_VERIFYING_";
+    private static final String contactChangeVerifiedRedisPrefix = "CONTACT_CHANGE_VERIFIED_";
     
     @Autowired
     UserRepository userRepository;
@@ -63,6 +70,9 @@ public class AuthController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
 
     // @Autowired
     // LogService logService;
@@ -216,7 +226,7 @@ public class AuthController {
             // 인증번호 생성
             String verificationCode = String.valueOf((int)(Math.floor(Math.random()*1000000)));
             // 인증번호 Redis에 저장
-            redisService.setVerificationCode(signUpVerifyingRedisPrefix + email, verificationCode);
+            redisService.setVerificationCode(emailSignUpVerifyingRedisPrefix + email, verificationCode);
             // 이메일 전송
             emailService.sendSignUpVerificationEmail(email, email, verificationCode);
             return ResponseEntity.ok().build();       
@@ -232,12 +242,12 @@ public class AuthController {
         email = URLDecoder.decode(email, StandardCharsets.UTF_8);
         try {
             // Redis에서 인증번호 가져오기
-            String redisVerificationCode = redisService.get(signUpVerifyingRedisPrefix + email);
+            String redisVerificationCode = redisService.get(emailSignUpVerifyingRedisPrefix + email);
             // 인증번호 확인
             if(redisVerificationCode.equals(verificationCode)) {
-                redisService.delete(signUpVerifyingRedisPrefix + email);
+                redisService.delete(emailSignUpVerifyingRedisPrefix + email);
                 // 인증된 이메일을 Redis에 일정 시간 동안 저장, 시간 내에 회원가입 완료 필요
-                redisService.setVerificationCode(signUpVerifiedRedisPrefix + email, email);
+                redisService.setVerificationCode(emailSignUpVerifiedRedisPrefix + email, email);
                 return ResponseEntity.ok().build();
             }
             else {
@@ -253,6 +263,12 @@ public class AuthController {
     @Operation(summary = "전화번호 인증번호 전송", description = "전화번호 소유 여부 확인을 위해 해당 전화번호로 인증번호를 발송합니다.")
     public ResponseEntity<?> sendSignUpVerificationContact(@RequestParam(name="contact") String contact) {
         try {
+            // 인증번호 생성
+            String verificationCode = String.valueOf((int)(Math.floor(Math.random()*1000000)));
+            // 인증번호 Redis에 저장
+            redisService.setVerificationCode(contactSignUpVerifyingRedisPrefix + contact, verificationCode);
+            // 메시지 전송
+            smsService.sendSignUpVerificationSms(contact, verificationCode);
             return ResponseEntity.ok().build();       
         } catch (Exception e) {
             e.printStackTrace();
@@ -262,11 +278,15 @@ public class AuthController {
 
     @PostMapping("/sign-up/contacts/verification")
     @Operation(summary = "전화번호 인증번호 확인", description = "전화번호로 전송된 인증번호를 확인합니다.")
-    public ResponseEntity<?> checkSignUpVerificationContact(@RequestParam(name="contact") String email, @RequestParam(name="verificationCode") String verificationCode) {
+    public ResponseEntity<?> checkSignUpVerificationContact(@RequestParam(name="contact") String contact, @RequestParam(name="verificationCode") String verificationCode) {
         try {
-            String redisVerificationCode = null;
+            // Redis에서 인증번호 가져오기
+            String redisVerificationCode = redisService.get(contactSignUpVerifyingRedisPrefix + contact);
             // 인증번호 확인
             if(redisVerificationCode.equals(verificationCode)) {
+                redisService.delete(contactSignUpVerifyingRedisPrefix + contact);
+                // 인증된 전화번호를 Redis에 일정 시간 동안 저장, 시간 내에 회원가입 완료 필요
+                redisService.setVerificationCode(contactSignUpVerifiedRedisPrefix + contact, contact);
                 return ResponseEntity.ok().build();
             }
             else {
@@ -295,15 +315,24 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "필요 정보들을 전달하여 회원가입을 합니다. (이름, 이베일, 닉네임, 비밀번호(SHA3-256 해싱), 전화번호)")
     public ResponseEntity<?> signupAccount(SignupRequestDto signupRequestDto) {
         try {
+            // 전화번호 중복 확인
+            if(customUserDetailsService.countByContact(signupRequestDto.getContact()) != 0) {
+                throw new Exception("SignUp request with the duplicated contact.");
+            }
             // 이메일 중복 확인
             if(customUserDetailsService.countByEmail(signupRequestDto.getEmail()) != 0) {
                 throw new Exception("SignUp request with the duplicated email.");
             }
+            // 인증된 전화번호 여부 확인
+            if(redisService.get(contactSignUpVerifiedRedisPrefix+signupRequestDto.getContact()) == null) {
+                throw new Exception("SignUp request with the unverified contact.");
+            }
             // 인증된 이메일 여부 확인
-            if(redisService.get(signUpVerifiedRedisPrefix+signupRequestDto.getEmail()) == null) {
+            if(redisService.get(emailSignUpVerifiedRedisPrefix+signupRequestDto.getEmail()) == null) {
                 throw new Exception("SignUp request with the unverified email.");
             }
-            redisService.delete(signUpVerifiedRedisPrefix + signupRequestDto.getEmail());
+            redisService.delete(contactSignUpVerifiedRedisPrefix + signupRequestDto.getContact());
+            redisService.delete(emailSignUpVerifiedRedisPrefix + signupRequestDto.getEmail());
             // 비밀번호 해싱
             signupRequestDto.setPassword(passwordEncoder.encode(signupRequestDto.getPassword()));
             // 회원가입
