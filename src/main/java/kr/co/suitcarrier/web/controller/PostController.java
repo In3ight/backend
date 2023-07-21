@@ -22,7 +22,7 @@ public class PostController {
         return postService.createPost(requestDto);
     }
 
-    @GetMapping("/{postId}/delete")
+    @DeleteMapping("/{postId}/delete")
     @Operation(summary = "게시글 삭제")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deletePost(@PathVariable("postId") Long postId) {

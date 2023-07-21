@@ -64,6 +64,7 @@ public class SecurityConfiguration {
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/admin/**").hasAuthority("ADMIN")
                     .requestMatchers("/product/**").hasAuthority("USER")
+                        .requestMatchers("/post/**").permitAll()
                     .requestMatchers("/search/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers("/v3/api-docs/**").permitAll()
