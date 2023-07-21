@@ -39,17 +39,4 @@ public class Product {
         this.name = name;
         this.brand = brand;
     }
-
-    @Builder
-    public Product(String color, String size, String name, String brand) {
-        this.color = color;
-        this.size = size;
-        this.name = name;
-        this.brand = brand;
-    }
-
-    @PrePersist
-    public void autofill() {
-        this.setUuid(UUID.randomUUID().toString());
-    }
 }
