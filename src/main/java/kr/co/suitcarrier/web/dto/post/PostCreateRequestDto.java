@@ -10,12 +10,16 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Data
 @Setter(AccessLevel.NONE)
 @Builder
 @Schema(description = "게시글 생성")
 public class PostCreateRequestDto {
+    List<MultipartFile> images;
     private String title;
     private String description;
     private int price;
@@ -26,7 +30,7 @@ public class PostCreateRequestDto {
     private String name;
     private String brand;
 
-    public Post toEntity(User user, PostState postState, Product product) {
+    public Post toEntity(User user, PostState postState, Product product, PostImage image) {
         return Post.builder()
                 .title(title)
                 .description(description)
