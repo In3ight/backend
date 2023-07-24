@@ -1,10 +1,15 @@
 package kr.co.suitcarrier.web.entity.post;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
+@RequiredArgsConstructor
 @Table(name = "post_image")
 public class PostImage {
     @Id
@@ -21,4 +26,11 @@ public class PostImage {
 
     @Column(name="image_url", nullable = false)
     private String imageUrl;
+
+    @Builder
+    public PostImage(Post post, String uri) {
+        this.post = post;
+        this.imageUrl = uri;
+        this.thumnail = uri;
+    }
 }
