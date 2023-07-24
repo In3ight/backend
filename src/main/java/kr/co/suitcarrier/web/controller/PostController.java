@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     @Operation(summary = "게시글 생성")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createPost(@RequestBody PostCreateRequestDto requestDto) {
+    public ResponseEntity<?> createPost(@ModelAttribute PostCreateRequestDto requestDto) {
         return postService.createPost(requestDto);
     }
 
