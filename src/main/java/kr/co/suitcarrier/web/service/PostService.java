@@ -3,10 +3,7 @@ package kr.co.suitcarrier.web.service;
 import kr.co.suitcarrier.web.config.CustomUserDetails;
 import kr.co.suitcarrier.web.dto.post.*;
 import kr.co.suitcarrier.web.entity.User;
-import kr.co.suitcarrier.web.entity.post.Post;
-import kr.co.suitcarrier.web.entity.post.PostState;
-import kr.co.suitcarrier.web.entity.post.Product;
-import kr.co.suitcarrier.web.entity.post.Review;
+import kr.co.suitcarrier.web.entity.post.*;
 import kr.co.suitcarrier.web.repository.ReviewRepository;
 import kr.co.suitcarrier.web.repository.UserRepository;
 import kr.co.suitcarrier.web.repository.post.*;
@@ -17,7 +14,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,60 +30,66 @@ public class PostService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public ResponseEntity<?> createPost(PostCreateRequestDto requestDto) {
-        // 유저정보 조회>입력된 정보를 바탕으로 상품 생성->게시글상태 생성->게시글 생성
-        User user;
+        // 유저정보 조회>입력된 정보를 바탕으로 상품 생성->게시글상태 생성->게시글 생성->게시글 이미지 생성
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String uuid = userDetails.getUuid();
 
-        if(uuid != null) {
-            user = userRepository.findByUuid(uuid).get();
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("현재 사용자의 uuid가 존재하지 않음");
-        }
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다. id=" + uuid));
 
-        Long postId = null;
+        try {
+            Product product = Product.builder()
+                    .color(requestDto.getColor())
+                    .name(requestDto.getName())
+                    .size(requestDto.getSize())
+                    .brand(requestDto.getBrand())
+                    .build();
+            product = productRepository.save(product);
 
-        if(user != null) {
-            try {
-                Product product = Product.builder()
-                        .color(requestDto.getColor())
-                        .name(requestDto.getName())
-                        .size(requestDto.getSize())
-                        .brand(requestDto.getBrand())
-                        .build();
-                product = productRepository.save(product);
+            PostState postState = postStateRepository.save(PostState.builder().state(PostState.State.LENT_POSSIBLE).build());
 
-                PostState postState = postStateRepository.save(PostState.builder().state(PostState.State.LENT_POSSIBLE).build());
+            Post post = Post.builder()
+                    .title(requestDto.getTitle())
+                    .description(requestDto.getDescription())
+                    .price(requestDto.getPrice())
+                    .additionalPrice(requestDto.getAdditionalPrice())
+                    .user(user)
+                    .postState(postState)
+                    .product(product)
+                    .build();
+            post = postRepository.save(post);
 
-                Post post = Post.builder()
-                        .title(requestDto.getTitle())
-                        .description(requestDto.getDescription())
-                        .price(requestDto.getPrice())
-                        .additionalPrice(requestDto.getAdditionalPrice())
-                        .user(user)
-                        .postState(postState)
-                        .product(product)
-                        .build();
+            // requestDto에서 이미지 가져오기->이미지별로 저장
+            List<MultipartFile> images = requestDto.getImages();
+            if(images != null) {
+                Post finalPost = post;
+                images.forEach(img -> {
+                    try {
+                        String imgUrl = s3Service.uploadImage(img);
+                        System.out.println("업로드 uri:"+imgUrl);
 
-                System.out.println("게시글:"+post.getId()+post.getTitle());
-                postRepository.save(post);
-                postId = post.getId();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity
-                        .status(HttpStatus.FORBIDDEN)
-                        .body("게시글 생성 실패");
+                        System.out.println("게시글 id: "+ finalPost.getId());
+                        postImageRepository.save(PostImage.builder().post(finalPost).uri(imgUrl).build());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
+
+            return ResponseEntity.ok(post.getId());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("게시글 생성 실패");
         }
-        return ResponseEntity.ok(postId);
     }
 
     @Transactional
