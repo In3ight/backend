@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class LikeRequestDto {
 
-    private Integer user;
-    private Integer post;
+    private Long user;
+    private Long post;
 
 }

@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private String id;
+    private Long id;
     private String uuid;
 	private String role;
     private String email;
