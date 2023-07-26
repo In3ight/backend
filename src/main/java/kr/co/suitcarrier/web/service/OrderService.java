@@ -25,9 +25,9 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @Transactional
-    public List<Order> getOrderList(Integer userId) {
+    public List<Order> getOrderList(Long userId) {
         try {
-            return orderRepository.findByUser(userId);
+            return orderRepository.findByUserId(userId);
         } catch (Exception e) {
             e.printStackTrace();
             return List.of();
@@ -35,7 +35,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Optional<OrderState> getOrderState(Integer orderStateId) {
+    public Optional<OrderState> getOrderState(Long orderStateId) {
         try {
             return orderStateRepository.findById(orderStateId);
         } catch (Exception e) {

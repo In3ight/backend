@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public class CartRequestDto {
 
-    private Integer user;
-    private Integer post;
+    private Long user;
+    private Long post;
     private LocalDateTime rentDate;
     private LocalDateTime returnDate;
     private int rentPossible;

@@ -25,9 +25,9 @@ public class CartService {
     private final UserRepository userRepository;
 
     @Transactional
-    public List<Cart> getCartList(Integer userId) {
+    public List<Cart> getCartList(Long userId) {
         try {
-            return cartRepository.findByUser(userId);
+            return cartRepository.findByUserId(userId);
         } catch (Exception e) {
             e.printStackTrace();
             return List.of();
@@ -35,7 +35,7 @@ public class CartService {
     }
 
     @Transactional
-    public boolean canAddCart(Integer postId, LocalDateTime rentDate, LocalDateTime returnDate) {
+    public boolean canAddCart(Long postId, LocalDateTime rentDate, LocalDateTime returnDate) {
         try {
             return (cartRepository.findByPostAndDateRange(postId, rentDate, returnDate) == null);
         } catch (Exception e) {
@@ -47,7 +47,7 @@ public class CartService {
     // @Transactional
     // public boolean createCartItem(
     //     String userEmail, 
-    //     Integer postId, 
+    //     Long postId,
     //     LocalDateTime rentDate, 
     //     LocalDateTime returnDate, 
     //     Integer rentPossible
@@ -74,9 +74,9 @@ public class CartService {
     // }
 
     @Transactional
-    public boolean deleteCartItem(Integer cartId) {
+    public boolean deleteCartItem(Long cartUuid) {
         try {
-            cartRepository.deleteById(cartId);
+            cartRepository.deleteByUuid(cartUuid);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
