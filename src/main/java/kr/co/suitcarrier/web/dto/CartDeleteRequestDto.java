@@ -5,6 +5,6 @@ import lombok.Getter;
 @Getter
 public class CartDeleteRequestDto {
 
-    private Integer id;
+    private Long uuid;
 
 }

@@ -25,9 +25,9 @@ public class LikeService {
     private final UserRepository userRepository;
 
     @Transactional
-    public List<Like> getLikeList(Integer userId) {
+    public List<Like> getLikeList(Long userId) {
         try {
-            return likeRepository.findByUser(userId);
+            return likeRepository.findByUserId(userId);
         } catch (Exception e) {
             e.printStackTrace();
             return List.of();
@@ -35,9 +35,9 @@ public class LikeService {
     }
 
     @Transactional
-    public Optional<Like> getLike(Integer userId, Integer postId) {
+    public Optional<Like> getLike(Long userId, Long postId) {
         try {
-            return likeRepository.findByUserAndPost(userId, postId);
+            return likeRepository.findByUserIdAndPostId(userId, postId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -45,7 +45,7 @@ public class LikeService {
     }
 
     // @Transactional
-    // public boolean createLike(String userEmail, Integer postId) {
+    // public boolean createLike(String userEmail, Long postId) {
     //     try {
     //         Like likeEntity = new Like();
 
@@ -64,9 +64,9 @@ public class LikeService {
     // }
 
     @Transactional
-    public boolean deleteLike(Integer userId, Integer postId) {
+    public boolean deleteLike(Long userId, Long postId) {
         try {
-            likeRepository.deleteByUserAndPost(userId, postId);
+            likeRepository.deleteByUserIdAndPostId(userId, postId);
             return true;
         } catch (Exception e) {
             e.printStackTrace();

@@ -46,7 +46,7 @@ public class OrderController {
         // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
         CustomUserDetails userDetails = (CustomUserDetails)principal; 
-        Integer userId = Integer.parseInt(userDetails.getId());
+        Long userId = userDetails.getId();
 
         // ResponseDTO를 만들어서 클라이언트에게 전달
         LikeResponseDto likeResponseDto = new LikeResponseDto(likeService.getLikeList(userId)); 
@@ -60,11 +60,11 @@ public class OrderController {
             // SecurityContextHolder 현재 로그인 중인 유저 정보를 가져온다
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
             CustomUserDetails userDetails = (CustomUserDetails)principal; 
-            Integer userId = Integer.parseInt(userDetails.getId());
+            Long userId = userDetails.getId();
             String userEmail = userDetails.getEmail(); 
 
             //DTO에서 postId를 가져온다
-            Integer postId = likeRequestDto.getPost();
+            Long postId = likeRequestDto.getPost();
 
             // 찜 중복 확인
             if(likeService.getLike(userId, postId) != null) {
@@ -88,10 +88,10 @@ public class OrderController {
             // SecurityContextHolder 현재 로그인 중인 유저 정보를 가져온다
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
             CustomUserDetails userDetails = (CustomUserDetails)principal; 
-            Integer userId = Integer.parseInt(userDetails.getId());
+            Long userId = userDetails.getId();
 
             // DTO에서 postId를 가져온다
-            Integer postId = likeRequestDto.getPost();
+            Long postId = likeRequestDto.getPost();
 
             // 찜 존재하는지 확인
             if(likeService.getLike(userId, postId) == null) {
@@ -114,7 +114,7 @@ public class OrderController {
         // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
         CustomUserDetails userDetails = (CustomUserDetails)principal; 
-        Integer userId = Integer.parseInt(userDetails.getId());
+        Long userId = userDetails.getId();
 
         // ResponseDTO를 만들어서 클라이언트에게 전달
         CartResponseDto cartResponseDto = new CartResponseDto(cartService.getCartList(userId)); 
@@ -130,7 +130,7 @@ public class OrderController {
             CustomUserDetails userDetails = (CustomUserDetails)principal; 
             String userEmail = userDetails.getEmail(); 
 
-            Integer postId = cartRequestDto.getPost();
+            Long postId = cartRequestDto.getPost();
             LocalDateTime rentDate = cartRequestDto.getRentDate();
             LocalDateTime returnDate = cartRequestDto.getReturnDate();
             Integer rentPossible = cartRequestDto.getRentPossible();
@@ -154,10 +154,10 @@ public class OrderController {
     @DeleteMapping("/cart")
     public ResponseEntity<?> removeCart(@RequestBody CartDeleteRequestDto cartRequestDto) {
         try {
-            Integer cartId = cartRequestDto.getId();
+            Long cartUuid = cartRequestDto.getUuid();
 
             // 장바구니 삭제
-            cartService.deleteCartItem(cartId);
+            cartService.deleteCartItem(cartUuid);
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
@@ -172,7 +172,7 @@ public class OrderController {
         // SecurityContextHolder 현재 로그인 중인 유저의 아아디를 가져온다
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
         CustomUserDetails userDetails = (CustomUserDetails)principal; 
-        Integer userId = Integer.parseInt(userDetails.getId());
+        Long userId = userDetails.getId();
 
         // ResponseDTO를 만들어서 클라이언트에게 전달
         OrderResponseDto orderResponseDto = new OrderResponseDto(orderService.getOrderList(userId)); 
@@ -198,7 +198,7 @@ public class OrderController {
 
     // 주문상태 확인
     @GetMapping("/state/{orderStateId}")
-    public ResponseEntity<?> getOrderState(@PathVariable Integer orderStateId) {
+    public ResponseEntity<?> getOrderState(@PathVariable Long orderStateId) {
         return ResponseEntity.ok(orderService.getOrderState(orderStateId));
     }
 
