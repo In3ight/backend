@@ -12,13 +12,10 @@ import java.util.Optional;
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
-    @Query(value = "SELECT * FROM like WHERE user_id = :userId)", nativeQuery = true)
-    List<Like> findByUser(Integer userId);
+    List<Like> findByUserId(Long userId);
 
-    @Query(value = "SELECT * FROM like WHERE user_id = :userId AND post_id = :postId)", nativeQuery = true)
-    Optional<Like> findByUserAndPost(Integer userId, Integer postId);
+    Optional<Like> findByUserIdAndPostId(Long userId, Long postId);
 
-    @Query(value = "DELETE FROM like WHERE user_id = :userId AND post_id = :postId)", nativeQuery = true)
-    void deleteByUserAndPost(Integer userId, Integer postId);
+    void deleteByUserIdAndPostId(Long userId, Long postId);
 
 }
