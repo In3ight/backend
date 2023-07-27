@@ -41,7 +41,7 @@ import kr.co.suitcarrier.web.util.JwtTokenUtil;
 @Tag(name = "auth", description = "인증 관련 API")
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"https://suitcarrier.co.kr", "http://localhost:3000"})
 public class AuthController {
 
     private static final String accessTokenCookieName = "SC_access_token";
