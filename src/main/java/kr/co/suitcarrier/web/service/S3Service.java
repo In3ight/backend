@@ -19,14 +19,18 @@ public class S3Service {
     private String bucket;
 
     @Transactional
-    public String uploadImage(MultipartFile multipartFile) throws IOException {
+    public String uploadImage(MultipartFile multipartFile) {
         String originalFilename = "public/"+ multipartFile.getOriginalFilename();
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(multipartFile.getSize());
         metadata.setContentType(multipartFile.getContentType());
 
-        amazonS3.putObject(bucket, originalFilename, multipartFile.getInputStream(), metadata);
+        try {
+            amazonS3.putObject(bucket, originalFilename, multipartFile.getInputStream(), metadata);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return amazonS3.getUrl(bucket, originalFilename).toString();
     }
 
