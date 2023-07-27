@@ -2,12 +2,15 @@ package kr.co.suitcarrier.web.dto.post;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.suitcarrier.web.entity.post.Post;
+import kr.co.suitcarrier.web.entity.post.PostImage;
 import kr.co.suitcarrier.web.entity.post.PostState;
 import kr.co.suitcarrier.web.entity.post.Product;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Data
 @Setter(AccessLevel.NONE)
@@ -23,8 +26,9 @@ public class PostResponseDto {
     String color;
     String brand;
     String size;
+    List<String> imgUris;
 
-    public PostResponseDto(Post post) {
+    public PostResponseDto(Post post, List<String> imgUris) {
         PostState postState = post.getPostState();
         Product product = post.getProduct();
 
@@ -36,5 +40,6 @@ public class PostResponseDto {
         this.color = product.getColor();
         this.brand = product.getBrand();
         this.size = product.getSize();
+        this.imgUris = imgUris;
     }
 }

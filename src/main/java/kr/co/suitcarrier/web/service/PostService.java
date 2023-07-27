@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,15 +71,11 @@ public class PostService {
             if(images != null) {
                 Post finalPost = post;
                 images.forEach(img -> {
-                    try {
-                        String imgUrl = s3Service.uploadImage(img);
-                        System.out.println("업로드 uri:"+imgUrl);
+                    String imgUrl = s3Service.uploadImage(img);
+                    System.out.println("업로드 uri:"+imgUrl);
 
-                        System.out.println("게시글 id: "+ finalPost.getId());
-                        postImageRepository.save(PostImage.builder().post(finalPost).uri(imgUrl).build());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    System.out.println("게시글 id: "+ finalPost.getId());
+                    postImageRepository.save(PostImage.builder().post(finalPost).uri(imgUrl).build());
                 });
             }
 
@@ -115,14 +112,19 @@ public class PostService {
     }
 
     @Transactional
-    public ResponseEntity<PostResponseDto> getPost(Long postid) {
-        Post post = postRepository.findById(postid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postid));
+    public ResponseEntity<PostResponseDto> getPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
 
         Product product = post.getProduct();
         PostState postState = post.getPostState();
+        List<PostImage> images = postImageRepository.findAllByPostId(postId);
+        List<String> imgUris = images
+                .stream()
+                .map(image -> image.getImageUrl())
+                .collect(Collectors.toList());
 
-        PostResponseDto responseDto = new PostResponseDto(post);
+        PostResponseDto responseDto = new PostResponseDto(post, imgUris);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -177,11 +179,14 @@ public class PostService {
 //        color, brand, size에 null 입력 시 해당 조건은 무시됨.
 //        예를 들어 color에 null 값이 들어오면 모든 색상의 게시글이 조회됨
 
-        List<PostCardResponseDto> dtos = postRepository.findByConditions(requestDto.getColor(), requestDto.getBrand(), requestDto.getSize(),
-                        requestDto.getMinPrice(), requestDto.getMaxPrice())
-                .stream()
-                .map(post -> PostCardResponseDto.builder().post(post).build())
-                .collect(Collectors.toList());
+        List<Post> posts = postRepository.findByConditions(requestDto.getColor(), requestDto.getBrand(), requestDto.getSize(),
+                        requestDto.getMinPrice(), requestDto.getMaxPrice());
+        List<PostCardResponseDto> dtos = new ArrayList<>();
+        posts.forEach(post -> {
+            // 해당 포스트에 이미지가 없는 경우 url은 null 반환
+            PostImage image = postImageRepository.findTopByPostId(post.getId()).orElse(null);
+            dtos.add(PostCardResponseDto.builder().post(post).image(image).build());
+        });
 
         return ResponseEntity.ok(SearchResponseDto.builder().postCardResponseDtos(dtos).build());
     }
@@ -189,10 +194,13 @@ public class PostService {
     @Transactional
     public ResponseEntity<ListingResponseDto> listingPosts() {
         // 최신순으로 게시글 가져오기
-        List<PostCardResponseDto> dtos = postRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
-                .map(post -> PostCardResponseDto.builder().post(post).build())
-                .collect(Collectors.toList());
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<PostCardResponseDto> dtos = new ArrayList<>();
+        posts.forEach(post -> {
+            // 해당 포스트에 이미지가 없는 경우 url은 null 반환
+            PostImage image = postImageRepository.findTopByPostId(post.getId()).orElse(null);
+            dtos.add(PostCardResponseDto.builder().post(post).image(image).build());
+                });
 
         return ResponseEntity.ok(ListingResponseDto.builder().postCardResponseDtos(dtos).build());
     }
