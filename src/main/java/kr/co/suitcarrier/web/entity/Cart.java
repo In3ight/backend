@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -33,4 +34,12 @@ public class Cart {
 
     @Column(name="rent_possible", nullable = false)
     private int rentPossible;
+
+    @Column(name="uuid", unique = true)
+    private String uuid;
+
+    @PrePersist
+    public void autofill() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 }
