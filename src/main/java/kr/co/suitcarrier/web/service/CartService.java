@@ -1,10 +1,10 @@
 package kr.co.suitcarrier.web.service;
 
 import kr.co.suitcarrier.web.entity.Cart;
-import kr.co.suitcarrier.web.entity.Post;
+import kr.co.suitcarrier.web.entity.post.Post;
 import kr.co.suitcarrier.web.entity.User;
 import kr.co.suitcarrier.web.repository.CartRepository;
-import kr.co.suitcarrier.web.repository.PostRepository;
+import kr.co.suitcarrier.web.repository.post.PostRepository;
 import kr.co.suitcarrier.web.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
